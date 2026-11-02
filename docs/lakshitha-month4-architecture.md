@@ -219,7 +219,7 @@ Where to find the evidence for each rubric criterion (paths are relative to the 
 
 ### Accessibility (20)
 
-Full audit: `lakshitha-month4-accessibility.md`. Results: axe-core found 0 violations in 26 scenario/theme runs, a 320 px reflow check passed, 10/10 scripted keyboard journeys passed, and Lighthouse accessibility scored 100 on every page.
+Full audit: `lakshitha-month4-accessibility.md`. Results: axe-core found 0 violations in 26 scenario/theme runs, a 320 px reflow check passed, 10/10 scripted keyboard journeys passed, and Lighthouse accessibility scored 100 on every page. A **real NVDA 2026.2 screen-reader test** (30 steps, real keystrokes, captured speech) passes 30/30 after fixing the 3 issues it uncovered.
 
 ### Performance (20)
 

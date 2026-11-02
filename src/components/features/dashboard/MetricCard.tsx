@@ -11,6 +11,7 @@ export const MetricCard = memo(function MetricCard({ metric }: { metric: Metric 
   const Icon = ICONS[metric.id];
   const up = metric.change >= 0;
   const Trend = up ? TrendUpIcon : TrendDownIcon;
+  const change = Math.abs(metric.change).toFixed(1);
 
   return (
     <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-800 dark:bg-slate-900">
@@ -30,11 +31,12 @@ export const MetricCard = memo(function MetricCard({ metric }: { metric: Metric 
         )}
       >
         <Trend className="size-4" />
-        <span>
-          <span className="sr-only">{up ? 'Up' : 'Down'} </span>
-          {Math.abs(metric.change).toFixed(1)}%
+        {/* Flex items carry no whitespace, so screen readers would read "Up4.2%vs"; give them one sentence instead. */}
+        <span aria-hidden="true">{change}%</span>
+        <span aria-hidden="true" className="font-normal text-slate-600 dark:text-slate-400">
+          vs last period
         </span>
-        <span className="font-normal text-slate-600 dark:text-slate-400">vs last period</span>
+        <span className="sr-only">{`${up ? 'Up' : 'Down'} ${change}% vs last period`}</span>
       </p>
     </article>
   );

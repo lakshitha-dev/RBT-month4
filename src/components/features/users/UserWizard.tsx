@@ -170,13 +170,13 @@ export function UserWizard({ onSubmit, onCancel }: UserWizardProps) {
                 ['Name', values.name],
                 ['Email', values.email],
                 ['Department', values.department],
-                ['Role', values.role],
+                ['Role', values.role ? values.role[0]!.toUpperCase() + values.role.slice(1) : ''],
                 ['Status', values.isActive ? 'Active' : 'Inactive'],
                 ['Invitation', values.sendInvite ? 'Will be sent' : 'Not sent'],
               ].map(([label, value]) => (
                 <div key={label} className="grid grid-cols-3 gap-4 px-4 py-2.5">
                   <dt className="font-medium text-slate-600 dark:text-slate-400">{label}</dt>
-                  <dd className="col-span-2 text-slate-900 capitalize dark:text-white">{value}</dd>
+                  <dd className="col-span-2 break-words text-slate-900 dark:text-white">{value}</dd>
                 </div>
               ))}
             </dl>

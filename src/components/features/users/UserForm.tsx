@@ -33,7 +33,7 @@ export function UserForm({ defaultValues, onSubmit, onCancel, submitLabel = 'Sav
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       <p className="text-sm text-slate-600 dark:text-slate-400">
         Fields marked <span aria-hidden="true">*</span>
-        <span className="sr-only">as required</span> are required.
+        <span className="sr-only">with an asterisk</span> are required.
       </p>
       <Input label="Full name" required autoComplete="off" error={errors.name?.message} {...register('name')} />
       <Input label="Email" type="email" required autoComplete="off" error={errors.email?.message} {...register('email')} />

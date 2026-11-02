@@ -14,10 +14,11 @@
 | **Storybook a11y addon** | Every story, `a11y.test: 'error'` | Fails the story on any violation |
 | **Unit tests** | Modal (labelling, focus trap, Esc, focus restore); wizard (error focus, Enter, step-heading focus) | Pass |
 | **Manual review** of criteria automation cannot judge (non-text contrast, focus order, meaning) | All components | 4 issues found and fixed (§5) |
+| **Real screen reader: NVDA 2026.2 + Chrome** ([report](accessibility/screen-reader-test.md)) | 30 steps across every page, dialog and live region, driven with real keystrokes; speech captured from NVDA's log | **30/30 pass** after fixing 3 issues it found (§5 F1–F3) |
 
 Raw results: [`accessibility/axe-results.json`](accessibility/axe-results.json), [`accessibility/keyboard-results.json`](accessibility/keyboard-results.json).
 
-> Automated tools find roughly a third to a half of accessibility issues. They are a floor, not proof of conformance. §6 lists what still needs a human screen-reader session.
+> Automated tools find roughly a third to a half of accessibility issues. They are a floor, not proof of conformance. That is why a real NVDA session was also run (§6), and it caught three issues the tools missed.
 
 ## 2. WCAG 2.1 A/AA success criteria
 
@@ -101,18 +102,16 @@ From `npm run a11y` → `docs/accessibility/keyboard-results.json`:
 | 4 | The active sidebar link was indicated only by a brand-50 tint (1.1:1). `aria-current` covered screen readers but not sighted users. | 1.4.11 | Manual review | Added a 3 px brand-600/brand-300 indicator bar (6.3:1 / 9:1) and a semibold label. |
 | 5 | At mobile width the dashboard's chart card overflowed the viewport: the implicit grid track was sized by its content. | 1.4.10 | Screenshot review | Explicit `grid-cols-1` (`minmax(0,1fr)`) + `min-w-0`; added an automated 320 px reflow check to `npm run a11y`. |
 | 6 | Toasts were first built as `<ol role="status">`. The role strips list semantics and would orphan the `<li>`s. | 1.3.1 | Code review | The live regions are now plain `div`s. |
+| F1 | Metric trends read as "**Up4.2%vs last period**": the text was split across flex items with no real whitespace. | 1.3.1 | NVDA test | A single sr-only sentence ("Up 4.2% vs last period"); the visual pieces are `aria-hidden`. |
+| F2 | The required-fields note read "**Fields marked as required are required.**" | 3.3.2 | NVDA test | The sr-only text now says "with an asterisk". |
+| F3 | Emails were read (and shown) as "**Sr.Tester@Example.Com**": `capitalize` was applied to every value in the wizard review and the Settings profile. | 1.3.1 | NVDA test | Only the role is title-cased; names and emails keep their real casing. |
 
 ## 6. Screen-reader testing and known limitations
 
-- **Screen-reader session still to do.** This audit was produced in an automated environment, so **no live NVDA, JAWS or VoiceOver session was run**. The semantics they rely on are verified: accessible names and roles via axe and Testing Library role queries, live regions, and focus management. A manual pass is still recommended before release, using this script:
-  1. NVDA + Chrome: log in, and confirm "Sign in failed" and field errors are announced.
-  2. Navigate by landmarks (`D`) and headings (`H`) on the Dashboard; confirm the chart summary is read.
-  3. Users: type in search and confirm "N users found" is announced after the debounce; sort a column and confirm "ascending" is announced.
-  4. Edit a user: confirm the dialog name and description are read and the success toast is announced.
-  5. Delete a user: confirm the alertdialog is announced, then the Undo toast.
-  6. VoiceOver + Safari (macOS/iOS): repeat 1–5 and test the mobile drawer.
-- **Chart tooltip is pointer-only.** Keyboard and screen-reader users get the same information from the `<desc>` summary and the data table.
-- **Virtualised activity log.** Only visible rows exist in the DOM. Each row carries `aria-posinset`/`aria-setsize`, so position in the full list is announced, but a screen reader's virtual cursor sees only the rendered window. The search box is the efficient way to find an event.
+- **NVDA 2026.2 + Chrome: tested for real, 30/30 steps pass.** NVDA ran live while each step was performed with real keystrokes, including NVDA's own browse-mode commands (`H`, `D`, `T`, `G`, table navigation). Its speech was captured from the NVDA log. The test covered login errors, the skip link, landmarks, the heading outline, metrics, the chart summary, tabs, the bell menu, debounced search announcements, table navigation with row headers, sorting, both dialogs, toasts, the wizard and settings. It found **3 issues no automated tool caught** (F1–F3 in §5), all fixed and re-verified with NVDA. Full step-by-step results with NVDA's actual output: [`accessibility/screen-reader-test.md`](accessibility/screen-reader-test.md).
+- **Not tested:** JAWS, Narrator, VoiceOver (macOS/iOS) and TalkBack. The app uses only standard ARIA patterns, so they are expected to behave similarly, but this was not verified.
+- **Chart tooltip is pointer-only.** Keyboard and screen-reader users get the same information from the `<desc>` summary and the data table; NVDA reads the summary as "Revenue trend, graphic, Revenue from … up 53.2%. Highest …".
+- **Virtualised activity log.** Only visible rows exist in the DOM, so NVDA reports "list with 17 items" rather than the full 504. Every item reads in full, and the total ("504 events") is announced as a status message. The search box is the efficient way to find an event.
 - **Native multi-select** (in Storybook) is accessible but less discoverable for mouse users. A custom ARIA 1.2 combobox is a possible enhancement.
 - **Colour contrast in charts:** the trend line (brand-600) is 6.3:1 against the card. Grid lines are decorative and exempt.
 
