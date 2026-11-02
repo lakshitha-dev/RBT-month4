@@ -1,7 +1,7 @@
 # Screen-reader test: NVDA + Chrome
 
 A real screen-reader test of the **redesigned** production build ("framed-sheet" design).
-**Result: 30/30 steps pass after fixing the 6 issues the test found** (F4–F8 below). Two earlier runs, on the previous design, found and fixed F1–F3.
+**Result: all steps pass after fixing the issues the test found** (F4–F9 below), and **every fix was re-verified by ear with NVDA**. Two earlier runs, on the previous design, found and fixed F1–F3.
 
 | | |
 |---|---|
@@ -58,7 +58,8 @@ Test settings:
 | 28 | Notifications tabs | "Filter notifications \| tab control" → "**All 3** \| tab \| selected \| 1 of 2" → `→` → "**Unread 2** \| tab \| selected \| 2 of 2" | ✅ *(fixed, F8)* |
 | 29 | Settings theme radios | "Appearance \| region" → "Theme \| grouping" → "Dark, Dark background, easier on the eyes at night. \| radio button \| not checked \| 2 of 3" | ✅ |
 | 30 | Top bar | "banner landmark \| Theme: System. Switch to Light theme \| button" → "Sign out \| button" | ✅ |
-| 31 | Quick action with a count | "Quick actions \| region \| list \| **Mark all notifications read, 2 unread** \| button" | ✅ |
+| 31 | Sidebar link with a count | "Main \| navigation landmark \| list \| with 4 items \| **Notifications, 2 unread** \| link" | ✅ *(fixed, F9)* |
+| 32 | Quick action with a count | "Quick actions \| region \| list \| **Mark all notifications read, 2 unread** \| button" | ✅ |
 
 ## Issues found and fixed
 
@@ -71,7 +72,7 @@ Found by this run on the redesigned build. F1–F3 were found and fixed on the p
 | F6 | "Nuwan Kimnuwan.kim@adminflow.dev" (row header) | Name and email are stacked blocks with no space between them | An sr-only ", " between them (also on the phone list row before the status pill) | ✅ |
 | F7 | "Users updated186" | Label and figure are separate flex items | An sr-only ": " between them | ✅ |
 | F8 | "All6", "Unread5" (tab names) | The count span had no real space before it | A real space before the count, in both the Users and Notifications tabs | ✅ |
-| F9 | Sidebar link "Notifications, 2unread" | A leading space inside a visually hidden span is dropped from the accessible name | The visible count is `aria-hidden`, and the link carries one hidden phrase, ", 2 unread" | ❌ not re-run (the NVDA session was stopped before this check); verified only by the code change and the automated suite |
+| F9 | Sidebar link "Notifications, 2unread" | A leading space inside a visually hidden span is dropped from the accessible name | The visible count is `aria-hidden`, and the link carries one hidden phrase, ", 2 unread" | ✅ NVDA now reads "Notifications, 2 unread, link" (checked twice, with the Users link as a control in between) |
 
 F4, F6, F7, F8 and F9 are one class of bug: **adjacent flex or grid items carry no whitespace into the accessibility tree**. After F4–F8, the code was searched for the same pattern, which found F9 and the quick-action count (step 31). Neither axe nor Lighthouse flags this class of problem; only listening to the speech did.
 

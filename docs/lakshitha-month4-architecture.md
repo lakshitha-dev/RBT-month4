@@ -69,6 +69,15 @@ State is split by **ownership and lifetime**, not put into one global store:
 
 Copying API responses into a global store means hand-writing caching, invalidation, loading/error flags and race handling. React Query provides all of that. Its query-key factory (`usersKeys`) gives targeted invalidation: `invalidateQueries({ queryKey: usersKeys.all })` after any user mutation.
 
+### Is the state normalised?
+
+**Yes at the source, and deliberately not in the client cache.**
+
+- **One record per entity, keyed by id.** Each user exists exactly once, in the backend's `users` table keyed by `id` (`src/api/db.ts`). The client never copies user entities into Zustand, so no fact has two writable owners. The Zustand stores hold only state the client owns: the session, the theme and drawer, the toasts and inbox.
+- **Derived data is computed, never stored.** Status counts, unread counts, the roster's department groups, the "N inactive" finding and every dashboard metric are calculated from the rows when they are read. The finding and the roster read the same query, so the two copies of "27 inactive" are one value.
+- **The client cache is keyed by query, not normalised into an `ids` + `entities` map.** React Query stores each list page under its full query key (search, role, status, sort, page) plus one detail entry per user id, so the same user can appear in several cached pages. They stay consistent because every edit, delete or restore patches that user in **every** cached page and the detail entry (`patchCachedUser` in `src/hooks/useUsers.ts`), then invalidates `['users']`, so the server's version wins. With one entity type and no cross-references, a normalised entity map would add code without removing any duplication that can go stale. It becomes worth adding once entities reference each other (for example teams or roles as their own records that users point to).
+- **The activity log stores names, not ids, on purpose.** Each event records the actor's and target's names as they were at that moment, like any audit trail, so renaming or deleting a user never rewrites history.
+
 ### Store designs
 
 ```ts
@@ -176,7 +185,7 @@ The text box stays responsive. A request is issued only after 300 ms of inactivi
 
 Lighthouse showed mobile Total Blocking Time as the only weak metric; FCP, LCP, CLS and Speed Index were all green. CPU profiles and DevTools traces of a throttled load showed no JavaScript hotspot. App code was ~250 ms of 4×-throttled CPU; the rest was **layout passes** triggered as each widget swapped from skeleton to content. The fixes above target exactly that. Speculative micro-optimisation was avoided ("profile before optimising").
 
-Results: see [lighthouse/summary.md](lighthouse/summary.md).
+Results: see [lighthouse/summary.md](https://github.com/lakshitha-dev/RBT-month4/blob/main/docs/lighthouse/summary.md).
 
 ## 9. Quality and tooling
 
@@ -190,7 +199,7 @@ Results: see [lighthouse/summary.md](lighthouse/summary.md).
 
 - **Mock backend.** Swapping in a real REST API means changing only `src/api/`. A real backend would also need token refresh, route guards based on server-side roles, and MSW for tests.
 - **Native `<select multiple>`** was chosen for the multi-select because it is fully accessible out of the box. A custom combobox (ARIA 1.2 pattern) would look nicer but needs considerably more a11y work.
-- **State normalisation.** Server data is cached per query (list pages keyed by their full query, plus one detail entry per user id) rather than in a normalised entity store. The optimistic helpers keep these consistent by patching the user in every cached page and the detail entry, then invalidating. A normalised store (an `ids` + `entities` map) would only pay off with many cross-referencing entity types.
+- **State normalisation.** Normalised at the source; the client cache is keyed by query on purpose (see §3, "Is the state normalised?"). An `ids` + `entities` map is the next step once entities start referencing each other.
 - **Offline milestones** (before Month 5): i18n (`react-i18next`; UI strings are currently inline in components and would be extracted to message catalogues), WebSocket notifications (`notificationStore.notify` is already callable from outside React), Playwright E2E, further bundle analysis.
 
 ## 11. Evidence map against the Month 4 rubric
@@ -216,6 +225,7 @@ Where to find the evidence for each rubric criterion (paths are relative to the 
 |---|---|
 | Store design | Three focused Zustand stores with typed state and actions (`authStore`, `uiStore`, `notificationStore`). `persist` + `partialize` persist only durable data. Transient flags (`isLoading`, `error`, toasts) are never persisted |
 | Local vs global vs server | §3 table: server data in React Query; cross-cutting client state in Zustand; filters and pagination in the URL; open modals and wizard step in local state; form state in RHF |
+| Normalised state | One record per user, keyed by id, at the source; no entity copied into Zustand; derived values never stored; the client cache is keyed by query and kept consistent by patching every cached page on each mutation (§3, "Is the state normalised?") |
 | Derived values | Computed rather than stored: `selectUnreadCount`, `selectIsAuthenticated`, `hasFilters`, chart summary and geometry (`useMemo`), dashboard metrics (computed by the API layer from the data) |
 | Selectors and renders | Components subscribe to single slices (`useAuthStore((s) => s.user)`), never the whole store. Stable `mutate` references. `memo` rows/cards with `useMemo` column definitions. Queries colocated per widget so one response re-renders only its widget |
 
