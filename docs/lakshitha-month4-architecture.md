@@ -227,7 +227,7 @@ Full audit: `lakshitha-month4-accessibility.md`. Results: axe-core found 0 viola
 
 | Criterion | Evidence |
 |---|---|
-| Lighthouse 90+ | **Performance 100 on every page and profile** (median of 3 runs: Login, Overview and Users, each on mobile and desktop). Accessibility, Best Practices and SEO are 100 on every run. See `lakshitha-month4-lighthouse.pdf` and `docs/lighthouse/summary.md` for FCP, LCP, TBT and CLS per page |
+| Lighthouse 90+ | **Performance 99–100 on every page and profile** (median of 3 runs: Login, Overview and Users, each on mobile and desktop; final build). Accessibility, Best Practices and SEO are 100 on every run. See `lakshitha-month4-lighthouse.pdf` and `docs/lighthouse/summary.md` for FCP, LCP, TBT and CLS per page |
 | Bundle / code splitting | Every route `lazy()` + `Suspense`; RHF/Zod and the virtualiser load only on the routes that use them; no chart or icon libraries (hand-written SVG); self-hosted latin-only font subsets |
 | Load time and rendering | `memo`/`useMemo` where profiling showed benefit, virtualised 500-row activity log, `content-visibility` for off-screen sections, no raster images (SVG only) |
 
