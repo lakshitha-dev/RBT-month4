@@ -1,0 +1,55 @@
+{
+  "generated": "2026-11-02T07:32:46.045Z",
+  "results": [
+    {
+      "check": "First Tab reaches the skip link; activating it moves focus to <main>",
+      "pass": true,
+      "detail": "first Tab → \"a: Skip to main content\", after Enter → #main-content"
+    },
+    {
+      "check": "Client-side navigation moves focus to the new page <h1> and updates the title",
+      "pass": true,
+      "detail": "focus → \"h1: Users\", title \"Users · AdminFlow\""
+    },
+    {
+      "check": "Edit modal: focus moves in, Tab is trapped, Esc closes and focus returns to the trigger",
+      "pass": true,
+      "detail": "starts inside: true, trapped over 20 Tab/Shift+Tab: true, closed on Esc: true, focus back on \"button: Edit Ravi Johnson\""
+    },
+    {
+      "check": "Delete confirmation opens with focus on the safe \"Cancel\" action",
+      "pass": true,
+      "detail": "initial focus → \"button: Cancel\""
+    },
+    {
+      "check": "Tabs: arrow keys move focus and selection (roving tabindex), Home/End jump",
+      "pass": true,
+      "detail": "30 days →ArrowRight→ \"90 days\" (selected=true), Home → \"7 days\", tabbable tabs: 1"
+    },
+    {
+      "check": "Sortable column header is a button operable from the keyboard (aria-sort updates)",
+      "pass": true,
+      "detail": "Name column aria-sort: none → ascending"
+    },
+    {
+      "check": "Notification menu: Enter opens (aria-expanded), Esc closes and returns focus",
+      "pass": true,
+      "detail": "expanded true → false, focus \"button: Notifications, 2 unread\""
+    },
+    {
+      "check": "Mobile drawer: focus trapped inside, Esc closes and returns focus to the menu button",
+      "pass": true,
+      "detail": "trapped: true, closed: true, focus \"button: Open menu\""
+    },
+    {
+      "check": "Login: submitting empty form focuses the first invalid field and links its error",
+      "pass": true,
+      "detail": "focus → email, aria-invalid=true, described by \"Email is required\""
+    },
+    {
+      "check": "Wizard: invalid step keeps you on it and focuses the first error; valid step moves focus to the next step heading",
+      "pass": true,
+      "detail": "empty Continue → focus \"name\", Enter on valid step → \"h2: Step 2 of 3: Role & access\""
+    }
+  ]
+}

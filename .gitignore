@@ -1,0 +1,15 @@
+node_modules
+dist
+storybook-static
+*.local
+*.tsbuildinfo
+submission/
+.DS_Store
+
+# Generated audit reports (regenerate with `npm run lighthouse`); summary.md is kept
+docs/lighthouse/*.html
+docs/lighthouse/*.json
+docs/lighthouse/*.pdf
+
+# Local tool state
+.specclaw/
