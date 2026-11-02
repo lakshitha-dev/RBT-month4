@@ -14,18 +14,19 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
 }
 
+// One filled primary per screen (near-black); secondary is white with a control border; danger is the
+// negative colour as an outline, so a destructive action never shouts louder than the main job.
 const variants: Record<ButtonVariant, string> = {
-  primary: 'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800 shadow-sm',
-  secondary:
-    'bg-white text-slate-800 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-100 dark:ring-slate-600 dark:hover:bg-slate-700',
-  danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800 shadow-sm',
-  ghost: 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800',
+  primary: 'bg-primary text-on-primary hover:opacity-90 active:opacity-100',
+  secondary: 'bg-surface text-ink border border-control hover:bg-raised',
+  danger: 'bg-surface text-negative border border-negative hover:bg-pill-negative-bg',
+  ghost: 'text-ink hover:bg-raised',
 };
 
 const sizes: Record<ButtonSize, string> = {
-  sm: 'h-8 px-3 text-sm gap-1.5',
-  md: 'h-10 px-4 text-sm gap-2',
-  lg: 'h-12 px-6 text-base gap-2',
+  sm: 'h-8 px-3 gap-1.5',
+  md: 'h-9 px-3.5 gap-2',
+  lg: 'h-11 px-5 gap-2 text-base',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
@@ -39,8 +40,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       disabled={disabled || isLoading}
       aria-busy={isLoading || undefined}
       className={clsx(
-        'inline-flex shrink-0 items-center justify-center rounded-lg font-medium whitespace-nowrap transition-colors',
-        'disabled:cursor-not-allowed disabled:opacity-60',
+        'inline-flex shrink-0 items-center justify-center rounded-control text-sm font-medium whitespace-nowrap',
+        'transition-[background-color,opacity,transform] duration-150 active:translate-y-px',
+        'disabled:cursor-not-allowed disabled:opacity-55 disabled:active:translate-y-0',
         variants[variant],
         sizes[size],
         fullWidth && 'w-full',

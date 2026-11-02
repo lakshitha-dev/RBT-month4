@@ -13,11 +13,17 @@ export interface AuthState {
   clearError: () => void;
 }
 
+// Only in the screenshot-inspection build (`vite build --mode inspect`): start signed in as the demo
+// admin so the design inspector can reach the protected screens. Never set in a production build.
+const inspectSession: Pick<AuthState, 'user' | 'token'> =
+  import.meta.env.VITE_INSPECT_SESSION === 'true'
+    ? { user: { id: 'usr_admin', name: 'Alex Admin', email: 'admin@adminflow.dev', role: 'admin' }, token: 'inspect' }
+    : { user: null, token: null };
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      user: null,
-      token: null,
+      ...inspectSession,
       isLoading: false,
       error: null,
 

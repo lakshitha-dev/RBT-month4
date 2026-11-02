@@ -22,7 +22,7 @@ export const Line: Story = {};
 
 export const MetricCardPlaceholder: Story = {
   render: () => (
-    <div role="status" aria-label="Loading metrics" className="max-w-xs space-y-3 rounded-xl border border-slate-200 p-5 dark:border-slate-800">
+    <div role="status" aria-label="Loading metrics" className="max-w-xs space-y-3 rounded-card border border-line bg-surface p-5">
       <Skeleton className="h-4 w-24" />
       <Skeleton className="h-7 w-32" />
       <Skeleton className="h-4 w-40" />

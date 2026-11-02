@@ -2,11 +2,12 @@ import { useCallback, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDeleteUser, useRestoreUser, useUpdateUser, useUsersList } from '@/hooks/useUsers';
 import { useUsersQueryParams } from '@/hooks/useUsersQueryParams';
-import type { User } from '@/types';
+import type { StatusFilter, User } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Alert } from '@/components/common/Alert';
 import { Button } from '@/components/common/Button';
-import { Card } from '@/components/common/Card';
+import { Skeleton } from '@/components/common/Skeleton';
+import { Tabs } from '@/components/common/Tabs';
 import { Modal } from '@/components/common/Modal';
 import { Pagination } from '@/components/common/Pagination';
 import { PlusIcon } from '@/components/common/icons';
@@ -16,8 +17,15 @@ import { UserFilters } from '@/components/features/users/UserFilters';
 import { UserForm } from '@/components/features/users/UserForm';
 import { UsersTable } from '@/components/features/users/UsersTable';
 
+const STATUS_TABS: { value: StatusFilter; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+  { value: 'deleted', label: 'Deleted' },
+];
+
 export default function UsersPage() {
-  const { query, update, reset } = useUsersQueryParams();
+  const { query, update } = useUsersQueryParams();
   const { data, isPending, isFetching, isError, error, refetch } = useUsersList(query);
   const updateUser = useUpdateUser();
   const deleteUser = useDeleteUser();
@@ -38,18 +46,31 @@ export default function UsersPage() {
     requestAnimationFrame(() => resultsHeadingRef.current?.focus());
   };
 
-  const hasFilters = query.search || query.role !== 'all' || query.status !== 'all' || query.includeDeleted;
+  const hasFilters = Boolean(query.search) || query.role !== 'all';
   const total = data?.total ?? 0;
+  const counts = data?.counts;
+  const statusLabel = STATUS_TABS.find((t) => t.value === query.status)!.label;
 
   return (
     <>
       <PageHeader
         title="Users"
-        description="Create, edit and manage user accounts."
+        description={
+          counts ? (
+            <span className="num">
+              {formatNumber(counts.all)} members · {formatNumber(counts.inactive)} inactive · {formatNumber(counts.deleted)} deleted
+            </span>
+          ) : isError ? (
+            'Everyone with an account in this workspace.'
+          ) : (
+            // A one-line placeholder at the real size, so nothing below moves when the counts land (CLS).
+            <Skeleton className="my-0.5 h-4 w-60" />
+          )
+        }
         actions={
           <Link
             to="/users/new"
-            className="inline-flex h-10 items-center gap-2 rounded-lg bg-brand-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-brand-700"
+            className="inline-flex h-9 items-center gap-2 rounded-control bg-primary px-3.5 text-sm font-medium text-on-primary transition-opacity hover:opacity-90"
           >
             <PlusIcon />
             Add user
@@ -57,24 +78,36 @@ export default function UsersPage() {
         }
       />
 
-      <Card>
-        <div className="border-b border-slate-200 p-5 dark:border-slate-800">
-          <UserFilters query={query} onChange={update} />
-        </div>
+      <Tabs value={query.status} onValueChange={(v) => update({ status: v as StatusFilter })}>
+        <Tabs.List label="Account status">
+          {STATUS_TABS.map((t) => (
+            <Tabs.Tab key={t.value} value={t.value}>
+              {t.label}{' '}
+              {/* The count's slot is reserved before it loads, so the tabs never shift sideways. */}
+              <span className="num ml-0.5 inline-block min-w-[3ch] text-left font-normal text-muted">
+                {counts ? formatNumber(counts[t.value]) : ''}
+              </span>
+            </Tabs.Tab>
+          ))}
+        </Tabs.List>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 px-5 pt-4">
-          <h2 ref={resultsHeadingRef} tabIndex={-1} className="text-base font-semibold text-slate-900 dark:text-white">
-            All users
-          </h2>
-          {/* Announces result counts after debounced searches and filter changes. */}
-          <p role="status" className="text-sm text-slate-600 dark:text-slate-400">
-            {isPending ? 'Loading users…' : isFetching ? 'Updating results…' : `${formatNumber(total)} ${total === 1 ? 'user' : 'users'} found`}
-          </p>
-        </div>
+        <Tabs.Panel value={query.status} className="rounded-card">
+          <div className="mt-5 mb-3 flex flex-wrap items-end justify-between gap-3">
+            <UserFilters query={query} onChange={update} />
+            <div className="flex items-center gap-3 pb-2">
+              <h2 ref={resultsHeadingRef} tabIndex={-1} className="sr-only">
+                {statusLabel} users
+              </h2>
+              {/* Announces result counts after debounced searches and filter changes. */}
+              <p role="status" className="num text-sm text-muted">
+                {isPending ? 'Loading users…' : isFetching ? 'Updating results…' : `${formatNumber(total)} ${total === 1 ? 'user' : 'users'} found`}
+              </p>
+            </div>
+          </div>
 
-        <div className="defer-offscreen py-2">
-          {isError ? (
-            <div className="p-5">
+          {/* The table sits on the sheet with no card around it. */}
+          <div className="defer-offscreen">
+            {isError ? (
               <Alert
                 variant="error"
                 title="Couldn't load users"
@@ -86,42 +119,44 @@ export default function UsersPage() {
               >
                 {error.message}
               </Alert>
-            </div>
-          ) : (
-            <UsersTable
-              users={data?.items ?? []}
-              isLoading={isPending || isFetching}
-              sort={{ by: query.sortBy, dir: query.sortDir }}
-              onSortChange={({ by, dir }) => update({ sortBy: by, sortDir: dir })}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onRestore={onRestore}
-              emptyMessage={
-                <div className="space-y-2">
-                  <p className="font-medium text-slate-900 dark:text-white">No users match your filters.</p>
-                  {hasFilters && (
-                    <Button size="sm" variant="secondary" onClick={reset}>
-                      Clear filters
-                    </Button>
-                  )}
-                </div>
-              }
-            />
-          )}
-        </div>
-
-        {data && data.total > 0 && (
-          <div className="border-t border-slate-200 px-5 py-4 dark:border-slate-800">
-            <Pagination
-              page={data.page}
-              pageCount={data.pageCount}
-              pageSize={data.pageSize}
-              total={data.total}
-              onPageChange={(page) => update({ page })}
-            />
+            ) : (
+              <UsersTable
+                users={data?.items ?? []}
+                isLoading={isPending || isFetching}
+                sort={{ by: query.sortBy, dir: query.sortDir }}
+                onSortChange={({ by, dir }) => update({ sortBy: by, sortDir: dir })}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onRestore={onRestore}
+                emptyMessage={
+                  <div className="space-y-3">
+                    <p className="text-ink">
+                      {query.status === 'deleted' && !hasFilters ? 'No deleted accounts.' : 'No users match these filters.'}
+                    </p>
+                    {hasFilters && (
+                      <Button size="sm" variant="secondary" onClick={() => update({ search: '', role: 'all' })}>
+                        Clear filters
+                      </Button>
+                    )}
+                  </div>
+                }
+              />
+            )}
           </div>
-        )}
-      </Card>
+
+          {data && data.total > 0 && (
+            <div className="mt-2 border-t border-rule pt-4">
+              <Pagination
+                page={data.page}
+                pageCount={data.pageCount}
+                pageSize={data.pageSize}
+                total={data.total}
+                onPageChange={(page) => update({ page })}
+              />
+            </div>
+          )}
+        </Tabs.Panel>
+      </Tabs>
 
       <Modal open={Boolean(editing)} onClose={() => setEditing(null)} title="Edit user" description={editing ? `Update details for ${editing.name}.` : undefined}>
         {editing && (

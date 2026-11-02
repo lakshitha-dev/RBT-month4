@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { PAGE_SIZES } from '@/hooks/useUsersQueryParams';
-import type { Role, StatusFilter, UsersQuery } from '@/types';
-import { Checkbox } from '@/components/common/Checkbox';
+import type { Role, UsersQuery } from '@/types';
 import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import { SearchIcon } from '@/components/common/icons';
@@ -13,6 +12,7 @@ interface UserFiltersProps {
   onChange: (patch: Partial<UsersQuery>) => void;
 }
 
+/** Toolbar: search on the left, the role filter and page size beside it. Status lives in the tabs above. */
 export function UserFilters({ query, onChange }: UserFiltersProps) {
   // The input is local state for instant typing; only the debounced value hits the "server".
   const [search, setSearch] = useState(query.search);
@@ -23,49 +23,39 @@ export function UserFilters({ query, onChange }: UserFiltersProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to the debounced value
   }, [debouncedSearch]);
 
-  // Keep the input in sync if the URL changes externally (back button, "Clear filters").
+  // Keep the input in sync if the URL changes externally (back button, "Clear filters", the top-bar search).
   useEffect(() => {
     setSearch((current) => (current.trim() === query.search ? current : query.search));
   }, [query.search]);
 
   return (
-    <div role="search" aria-label="Filter users" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))] lg:items-end">
+    <div role="search" aria-label="Filter users" className="flex flex-wrap items-end gap-3">
       <Input
         label="Search users"
+        hideLabel
         type="search"
-        placeholder="Name, email or department"
-        leftIcon={<SearchIcon />}
+        placeholder="Search name, email or department"
+        leftIcon={<SearchIcon className="size-4" />}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         autoComplete="off"
+        className="w-full sm:w-80"
       />
       <Select
         label="Role"
+        hideLabel
         value={query.role}
         onChange={(e) => onChange({ role: e.target.value as Role | 'all' })}
         options={[{ value: 'all', label: 'All roles' }, ...ROLE_OPTIONS]}
-      />
-      <Select
-        label="Status"
-        value={query.status}
-        onChange={(e) => onChange({ status: e.target.value as StatusFilter })}
-        options={[
-          { value: 'all', label: 'All statuses' },
-          { value: 'active', label: 'Active' },
-          { value: 'inactive', label: 'Inactive' },
-        ]}
+        className="w-36"
       />
       <Select
         label="Rows per page"
+        hideLabel
         value={String(query.pageSize)}
         onChange={(e) => onChange({ pageSize: Number(e.target.value) })}
-        options={PAGE_SIZES.map((size) => ({ value: String(size), label: String(size) }))}
-      />
-      <Checkbox
-        label="Show deleted users"
-        checked={query.includeDeleted}
-        onChange={(e) => onChange({ includeDeleted: e.target.checked })}
-        className="sm:col-span-2 lg:col-span-4"
+        options={PAGE_SIZES.map((size) => ({ value: String(size), label: `${size} per page` }))}
+        className="w-36"
       />
     </div>
   );

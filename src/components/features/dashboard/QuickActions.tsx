@@ -1,15 +1,18 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { getAllUsers } from '@/api/users';
-import { notify, useNotificationStore } from '@/stores/notificationStore';
+import { notify, selectUnreadCount, useNotificationStore } from '@/stores/notificationStore';
 import { toCsv, downloadFile } from '@/utils/csv';
-import { Card } from '@/components/common/Card';
-import { Button } from '@/components/common/Button';
-import { BellIcon, DownloadIcon, PlusIcon, UsersIcon } from '@/components/common/icons';
+import { Spinner } from '@/components/common/Spinner';
+import { ChevronRightIcon, DownloadIcon, BellIcon, UsersIcon } from '@/components/common/icons';
 
+const row =
+  'flex h-12 w-full items-center gap-3 text-left text-sm text-ink transition-colors hover:text-accent disabled:cursor-not-allowed disabled:text-muted';
+
+/** The jobs an admin does from here besides adding a user (the primary action in the title row). */
 export function QuickActions() {
-  const navigate = useNavigate();
   const markAllRead = useNotificationStore((s) => s.markAllRead);
+  const unread = useNotificationStore(selectUnreadCount);
   const [exporting, setExporting] = useState(false);
 
   const exportUsers = async () => {
@@ -29,29 +32,43 @@ export function QuickActions() {
   };
 
   return (
-    <Card>
-      <Card.Header title="Quick actions" />
-      <Card.Body className="grid gap-2 sm:grid-cols-2">
-        <Button leftIcon={<PlusIcon />} onClick={() => navigate('/users/new')}>
-          Add user
-        </Button>
-        <Button variant="secondary" leftIcon={<UsersIcon />} onClick={() => navigate('/users')}>
-          Manage users
-        </Button>
-        <Button variant="secondary" leftIcon={<DownloadIcon />} isLoading={exporting} onClick={exportUsers}>
-          Export CSV
-        </Button>
-        <Button
-          variant="secondary"
-          leftIcon={<BellIcon />}
-          onClick={() => {
-            markAllRead();
-            notify({ type: 'info', title: 'Inbox cleared', message: 'All notifications marked as read.', inbox: false });
-          }}
-        >
-          Mark all read
-        </Button>
-      </Card.Body>
-    </Card>
+    <section aria-labelledby="quick-actions-heading">
+      <h2 id="quick-actions-heading" className="mb-2 text-base font-semibold text-ink">
+        Quick actions
+      </h2>
+      <ul className="divide-y divide-rule rounded-card border border-line bg-surface px-4">
+        <li>
+          <Link to="/users" className={row}>
+            <UsersIcon className="size-4 text-muted" />
+            <span className="flex-1">Manage users and roles</span>
+            <ChevronRightIcon className="size-4 text-muted" />
+          </Link>
+        </li>
+        <li>
+          <button type="button" className={row} onClick={exportUsers} disabled={exporting} aria-busy={exporting || undefined}>
+            {exporting ? <Spinner size="sm" label={null} className="text-muted" /> : <DownloadIcon className="size-4 text-muted" />}
+            <span className="flex-1">{exporting ? 'Exporting users…' : 'Export users as CSV'}</span>
+          </button>
+        </li>
+        <li>
+          <button
+            type="button"
+            className={row}
+            disabled={unread === 0}
+            onClick={() => {
+              markAllRead();
+              notify({ type: 'info', title: 'Inbox cleared', message: 'All notifications marked as read.', inbox: false });
+            }}
+          >
+            <BellIcon className="size-4 text-muted" />
+            <span className="flex-1">Mark all notifications read</span>
+            <span className="num text-xs text-muted">
+              <span className="sr-only">, </span>
+              {unread === 0 ? 'None unread' : `${unread} unread`}
+            </span>
+          </button>
+        </li>
+      </ul>
+    </section>
   );
 }

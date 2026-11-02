@@ -2,50 +2,82 @@ import { useEffect, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
 import clsx from 'clsx';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { selectUnreadCount, useNotificationStore } from '@/stores/notificationStore';
 import { useUiStore } from '@/stores/uiStore';
 import { ActivityIcon, BellIcon, CloseIcon, HomeIcon, SettingsIcon, UsersIcon } from '@/components/common/icons';
+import { Wordmark } from './BrandMark';
 
-const NAV = [
-  { to: '/', label: 'Dashboard', icon: HomeIcon, end: true },
+const MAIN_NAV = [
+  { to: '/', label: 'Overview', icon: HomeIcon, end: true },
   { to: '/users', label: 'Users', icon: UsersIcon },
   { to: '/activity', label: 'Activity', icon: ActivityIcon },
-  { to: '/notifications', label: 'Notifications', icon: BellIcon },
-  { to: '/settings', label: 'Settings', icon: SettingsIcon },
+  { to: '/notifications', label: 'Notifications', icon: BellIcon, countsUnread: true },
 ];
+const UTILITY_NAV = [{ to: '/settings', label: 'Settings', icon: SettingsIcon }];
 
-function Brand() {
+type NavItem = (typeof MAIN_NAV)[number] | (typeof UTILITY_NAV)[number];
+
+function NavRow({ item, unread, onNavigate }: { item: NavItem; unread: number; onNavigate?: () => void }) {
+  const { to, label, icon: Icon } = item;
+  const showCount = 'countsUnread' in item && item.countsUnread && unread > 0;
   return (
-    <div className="flex items-center gap-2 px-2">
-      <img src="/favicon.svg" alt="" width={32} height={32} className="size-8" />
-      <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">AdminFlow</span>
-    </div>
+    <li>
+      <NavLink
+        to={to}
+        end={'end' in item ? item.end : undefined}
+        onClick={onNavigate}
+        className={({ isActive }) =>
+          clsx(
+            'flex h-8 items-center gap-2.5 rounded-control px-2.5 text-sm transition-colors',
+            // Active: a neutral grey pill with the label in ink and semibold (a cue beyond colour).
+            isActive ? 'bg-active font-semibold text-ink' : 'text-muted hover:bg-raised hover:text-ink',
+          )
+        }
+      >
+        <Icon className="size-4 shrink-0" />
+        <span className="flex-1">{label}</span>
+        {/* A count only on a queue that needs action, with its noun in the label. */}
+        {showCount && (
+          <>
+            <span aria-hidden="true" className="num text-xs text-muted">
+              {unread}
+            </span>
+            {/* One phrase: a leading space inside a hidden span is dropped from the name ("2unread"). */}
+            <span className="sr-only">{`, ${unread} unread`}</span>
+          </>
+        )}
+      </NavLink>
+    </li>
   );
 }
 
-function NavItems({ onNavigate }: { onNavigate?: () => void }) {
+function NavContent({ onNavigate }: { onNavigate?: () => void }) {
+  const unread = useNotificationStore(selectUnreadCount);
   return (
-    <ul className="space-y-1">
-      {NAV.map(({ to, label, icon: Icon, end }) => (
-        <li key={to}>
-          <NavLink
-            to={to}
-            end={end}
-            onClick={onNavigate}
-            className={({ isActive }) =>
-              clsx(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                isActive
-                  ? 'bg-brand-50 font-semibold text-brand-800 shadow-[inset_3px_0_0_var(--color-brand-600)] dark:bg-brand-800/40 dark:text-white dark:shadow-[inset_3px_0_0_var(--color-brand-300)]'
-                  : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white',
-              )
-            }
-          >
-            <Icon className="size-5" />
-            {label}
-          </NavLink>
-        </li>
-      ))}
-    </ul>
+    <>
+      <nav aria-label="Main" className="flex flex-1 flex-col">
+        <ul className="space-y-0.5">
+          {MAIN_NAV.map((item) => (
+            <NavRow key={item.to} item={item} unread={unread} onNavigate={onNavigate} />
+          ))}
+        </ul>
+        <ul className="mt-auto space-y-0.5 pt-6">
+          {UTILITY_NAV.map((item) => (
+            <NavRow key={item.to} item={item} unread={unread} onNavigate={onNavigate} />
+          ))}
+        </ul>
+      </nav>
+    </>
+  );
+}
+
+/** The scope this admin works in, shown under the product's name. */
+function WorkspaceScope() {
+  return (
+    <div className="px-2.5">
+      <p className="text-sm font-medium text-ink">Main workspace</p>
+      <p className="text-xs text-muted">Admin console</p>
+    </div>
   );
 }
 
@@ -65,42 +97,42 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Desktop: persistent sidebar */}
-      <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white lg:block dark:border-slate-800 dark:bg-slate-900">
-        <div className="sticky top-0 flex h-screen flex-col gap-6 p-4">
-          <Brand />
-          <nav aria-label="Main">
-            <NavItems />
-          </nav>
+      {/* Desktop: the sidebar is part of the tinted frame, on the ground, with no rule. */}
+      <aside className="hidden w-[228px] shrink-0 lg:block">
+        <div className="sticky top-0 flex h-screen flex-col gap-5 px-3 pt-3 pb-4">
+          <div className="flex h-9 items-center px-2.5">
+            <Wordmark />
+          </div>
+          <WorkspaceScope />
+          <NavContent />
         </div>
       </aside>
 
-      {/* Mobile: modal drawer */}
+      {/* Phone and tablet: a full-height sheet over the screen. */}
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="animate-fade-in absolute inset-0 bg-slate-950/60" aria-hidden="true" onClick={close} />
+          <div className="animate-fade-in absolute inset-0 bg-black/45" aria-hidden="true" onClick={close} />
           <div
             ref={drawerRef}
             id="mobile-nav"
             role="dialog"
             aria-modal="true"
             aria-label="Main menu"
-            className="relative flex h-full w-72 max-w-[85vw] flex-col gap-6 bg-white p-4 shadow-xl dark:bg-slate-900"
+            className="animate-rise-in relative flex h-full w-72 max-w-[85vw] flex-col gap-5 bg-ground px-3 pt-3 pb-4"
           >
-            <div className="flex items-center justify-between">
-              <Brand />
+            <div className="flex h-9 items-center justify-between px-2.5">
+              <Wordmark />
               <button
                 type="button"
                 onClick={close}
                 aria-label="Close menu"
-                className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                className="-mr-1.5 flex size-9 items-center justify-center rounded-control text-muted hover:bg-raised hover:text-ink"
               >
                 <CloseIcon className="size-5" />
               </button>
             </div>
-            <nav aria-label="Main">
-              <NavItems onNavigate={close} />
-            </nav>
+            <WorkspaceScope />
+            <NavContent onNavigate={close} />
           </div>
         </div>
       )}

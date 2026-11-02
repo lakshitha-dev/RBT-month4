@@ -13,17 +13,17 @@ function ControlledTabs({ initial = 'overview' }: { initial?: string }) {
           <Tabs.Tab value="security">Security</Tabs.Tab>
           <Tabs.Tab value="billing">Billing</Tabs.Tab>
         </Tabs.List>
-        <Tabs.Panel value="overview" className="mt-4 rounded-lg text-sm">
+        <Tabs.Panel value="overview" className="mt-4 rounded-card text-sm text-ink">
           Account overview: plan, seats and usage.
         </Tabs.Panel>
-        <Tabs.Panel value="security" className="mt-4 rounded-lg text-sm">
+        <Tabs.Panel value="security" className="mt-4 rounded-card text-sm text-ink">
           Two-factor authentication and active sessions.
         </Tabs.Panel>
-        <Tabs.Panel value="billing" className="mt-4 rounded-lg text-sm">
+        <Tabs.Panel value="billing" className="mt-4 rounded-card text-sm text-ink">
           Invoices and payment methods.
         </Tabs.Panel>
       </Tabs>
-      <p className="mt-6 text-xs text-slate-600 dark:text-slate-400">
+      <p className="mt-6 text-xs text-muted">
         Controlled value: <code>{value}</code>
       </p>
     </div>

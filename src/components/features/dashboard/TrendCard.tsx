@@ -1,24 +1,17 @@
 import { useCallback, useMemo, useState } from 'react';
+import { RANGE_DAYS } from '@/api/dashboard';
 import { useTrend } from '@/hooks/useDashboard';
 import type { TrendRange } from '@/types';
 import { formatDate, formatMetric, formatNumber } from '@/utils/format';
-import { Alert } from '@/components/common/Alert';
 import { Card } from '@/components/common/Card';
 import { Select } from '@/components/common/Select';
 import { Skeleton } from '@/components/common/Skeleton';
-import { Tabs } from '@/components/common/Tabs';
 import { LineChart } from './LineChart';
 
 type Series = 'revenue' | 'orders';
 
-const RANGES: { value: TrendRange; label: string }[] = [
-  { value: '7d', label: '7 days' },
-  { value: '30d', label: '30 days' },
-  { value: '90d', label: '90 days' },
-];
-
-export function TrendCard() {
-  const [range, setRange] = useState<TrendRange>('30d');
+/** The screen's largest block: one series at a time, switched by a control rather than overlaid. */
+export function TrendCard({ range }: { range: TrendRange }) {
   const [series, setSeries] = useState<Series>('revenue');
   // The data table is only rendered once requested, keeping the initial DOM small.
   const [showTable, setShowTable] = useState(false);
@@ -30,12 +23,22 @@ export function TrendCard() {
     [series],
   );
   const seriesLabel = series === 'revenue' ? 'Revenue' : 'Orders';
+  const total = points.reduce((sum, p) => sum + p.y, 0);
+  const days = RANGE_DAYS[range];
 
   return (
     <Card>
       <Card.Header
-        title="Performance trend"
-        description="Daily revenue and orders"
+        title={`${seriesLabel} per day`}
+        description={
+          isPending ? (
+            <Skeleton className="mt-1 h-4 w-40" />
+          ) : (
+            <span className="num">
+              {formatValue(total)} in the last {days} days
+            </span>
+          )
+        }
         actions={
           <Select
             label="Metric"
@@ -50,65 +53,47 @@ export function TrendCard() {
           />
         }
       />
-      <Card.Body>
-        <Tabs value={range} onValueChange={(v) => setRange(v as TrendRange)}>
-          <Tabs.List label="Date range">
-            {RANGES.map((r) => (
-              <Tabs.Tab key={r.value} value={r.value}>
-                {r.label}
-              </Tabs.Tab>
-            ))}
-          </Tabs.List>
-          {RANGES.map((r) => (
-            <Tabs.Panel key={r.value} value={r.value} className="mt-4 rounded-lg">
-              {isError ? (
-                <Alert
-                  variant="error"
-                  title="Couldn't load trend data"
-                  action={
-                    <button type="button" className="font-semibold underline" onClick={() => refetch()}>
-                      Retry
-                    </button>
-                  }
-                />
-              ) : isPending ? (
-                <div role="status" aria-label="Loading chart">
-                  <Skeleton className="aspect-[640/260] w-full" />
-                </div>
-              ) : (
-                <div aria-busy={isFetching} className={isFetching ? 'opacity-60 transition-opacity' : undefined}>
-                  <LineChart data={points} seriesLabel={seriesLabel} formatValue={formatValue} />
-                  <details className="mt-3 text-sm" onToggle={(e) => setShowTable(e.currentTarget.open)}>
-                    <summary className="cursor-pointer font-medium text-brand-700 dark:text-brand-300">
-                      View chart data as a table
-                    </summary>
-                    {showTable && (
-                    <div className="mt-2 max-h-64 overflow-y-auto" tabIndex={0} role="region" aria-label={`${seriesLabel} data table`}>
-                      <table className="w-full text-left">
-                        <caption className="sr-only">{`${seriesLabel} per day, last ${r.label}`}</caption>
-                        <thead className="sticky top-0 bg-white dark:bg-slate-900">
-                          <tr>
-                            <th scope="col" className="py-1 pr-4 font-semibold">Date</th>
-                            <th scope="col" className="py-1 font-semibold">{seriesLabel}</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {points.map((p) => (
-                            <tr key={p.x} className="border-t border-slate-200 dark:border-slate-800">
-                              <td className="py-1 pr-4">{formatDate(p.x)}</td>
-                              <td className="py-1 tabular-nums">{formatValue(p.y)}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    )}
-                  </details>
+      <Card.Body className="pt-2">
+        {isError ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 py-16 text-sm">
+            <p className="text-ink">Couldn't load the trend.</p>
+            <button type="button" className="font-medium text-ink underline underline-offset-2" onClick={() => refetch()}>
+              Retry
+            </button>
+          </div>
+        ) : isPending ? (
+          <div role="status" aria-label="Loading chart">
+            <Skeleton className="aspect-[640/240] w-full" />
+          </div>
+        ) : (
+          <div aria-busy={isFetching} className={isFetching ? 'opacity-60 transition-opacity' : undefined}>
+            <LineChart data={points} seriesLabel={seriesLabel} formatValue={formatValue} />
+            <details className="mt-2 text-sm" onToggle={(e) => setShowTable(e.currentTarget.open)}>
+              <summary className="cursor-pointer text-muted hover:text-ink">View chart data as a table</summary>
+              {showTable && (
+                <div className="mt-2 max-h-64 overflow-y-auto" tabIndex={0} role="region" aria-label={`${seriesLabel} data table`}>
+                  <table className="w-full text-left">
+                    <caption className="sr-only">{`${seriesLabel} per day, last ${days} days`}</caption>
+                    <thead className="sticky top-0 bg-surface text-xs text-muted">
+                      <tr>
+                        <th scope="col" className="py-1.5 pr-4 font-normal">Date</th>
+                        <th scope="col" className="py-1.5 text-right font-normal">{seriesLabel}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {points.map((p) => (
+                        <tr key={p.x} className="border-t border-rule">
+                          <td className="py-1.5 pr-4">{formatDate(p.x)}</td>
+                          <td className="py-1.5 text-right">{formatValue(p.y)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
-            </Tabs.Panel>
-          ))}
-        </Tabs>
+            </details>
+          </div>
+        )}
       </Card.Body>
     </Card>
   );

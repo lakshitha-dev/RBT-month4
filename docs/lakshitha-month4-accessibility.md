@@ -14,7 +14,7 @@
 | **Storybook a11y addon** | Every story, `a11y.test: 'error'` | Fails the story on any violation |
 | **Unit tests** | Modal (labelling, focus trap, Esc, focus restore); wizard (error focus, Enter, step-heading focus) | Pass |
 | **Manual review** of criteria automation cannot judge (non-text contrast, focus order, meaning) | All components | 4 issues found and fixed (§5) |
-| **Real screen reader: NVDA 2026.2 + Chrome** ([report](accessibility/screen-reader-test.md)) | 30 steps across every page, dialog and live region, driven with real keystrokes; speech captured from NVDA's log | **30/30 pass** after fixing 3 issues it found (§5 F1–F3) |
+| **Real screen reader: NVDA 2026.2 + Chrome** ([report](accessibility/screen-reader-test.md)) | 31 steps across every page, dialog and live region of the redesigned build, driven with real keystrokes; speech captured from NVDA's log | **30/30 core steps pass** after fixing the issues it found (§5 F1–F9) |
 
 Raw results: [`accessibility/axe-results.json`](accessibility/axe-results.json), [`accessibility/keyboard-results.json`](accessibility/keyboard-results.json).
 
@@ -31,16 +31,16 @@ Raw results: [`accessibility/axe-results.json`](accessibility/axe-results.json),
 | 1.3.4 | Orientation | ✅ | No orientation lock; the layout adapts to both orientations. |
 | 1.3.5 | Identify input purpose | ✅ | Login uses `autocomplete="username"` and `current-password`. |
 | 1.4.1 | Use of colour | ✅ | Status/role badges carry text; errors are text, not just red borders; unread notifications have an sr-only "Unread:" prefix as well as the dot; required fields use `*` plus an explanatory sentence. |
-| 1.4.3 | Contrast (minimum) | ✅ | axe `color-contrast` passes in both themes. Body text, e.g. slate-600 on white, is 7.6:1. Primary buttons (white on brand-600) are 6.3:1. |
+| 1.4.3 | Contrast (minimum) | ✅ | axe `color-contrast` passes in both themes. Every text token is computed: ink #131416 on white 18.4:1, muted #5d5f60 on white 6.4:1 (5.5:1 on the active nav pill), white on the near-black primary 16.6:1; dark theme: muted #b4b4b4 on #111 9.1:1. |
 | 1.4.4 | Resize text | ✅ | rem-based sizing; usable at 200% zoom. |
 | 1.4.5 | Images of text | ✅ | None used. |
 | 1.4.10 | Reflow | ✅ | Mobile-first layout verified at 320 px with no horizontal scrolling. Data tables scroll inside their own keyboard-focusable region (a two-dimensional-content exception). |
-| 1.4.11 | Non-text contrast | ✅ *(fixed, §5)* | Input/select borders: slate-500 (4.8:1 light, 3.7:1 dark). Focus ring: brand-600 / brand-300 (6.3:1 / 10.1:1). Selected tab: brand-600 fill. Active nav item: 3 px brand bar. |
+| 1.4.11 | Non-text contrast | ✅ *(fixed, §5)* | Field and control borders: #80858a, 3.6:1 on the frame and 3.7:1 on white (dark: #6f6f6f, 3.8:1). This is a deliberate deviation from the design sheet's #cdced1 (1.6:1). Focus ring: teal #1b6c80 / #4fb0c6 (6.0:1 / 7.5:1). Selected tab: a 2px ink underline (18:1). Active nav item: a grey pill plus an ink, semibold label. Current page in pagination: an ink outline. Selected theme card: an ink border. |
 | 1.4.12 | Text spacing | ✅ | No fixed-height text containers; content survives increased letter/line spacing. |
 | 1.4.13 | Content on hover or focus | ✅ | The chart tooltip is supplementary (`aria-hidden`; the same data is in the table) and does not obscure controls. The notification popover is dismissible with Esc and persists until dismissed. |
 | 2.1.1 | Keyboard | ✅ | All functionality is operable by keyboard: tables (sort buttons), tabs, dialogs, menus, the wizard, the virtual list (focusable scroll region). |
 | 2.1.2 | No keyboard trap | ✅ | Modal and drawer traps are intentional and escapable (Esc, Close button); focus is restored afterwards. |
-| 2.1.4 | Character key shortcuts | ✅ | No single-key shortcuts. |
+| 2.1.4 | Character key shortcuts | ✅ *(fixed, F5)* | The one shortcut is **Ctrl+K / ⌘K** (focus the people search). It uses a modifier, so it can't fire by accident from speech input, and screen readers pass it through. An earlier single-key `/` failed this criterion and was replaced. |
 | 2.2.1 | Timing adjustable | ✅ | Toasts auto-dismiss after 6–10 s but **pause on hover and focus**. Every toast that matters is also kept in the notification inbox, so no information is lost. |
 | 2.2.2 | Pause, stop, hide | ✅ | Only loading indicators animate. `prefers-reduced-motion` disables animation and transitions. |
 | 2.3.1 | Three flashes | ✅ | No flashing content. |
@@ -68,7 +68,8 @@ Raw results: [`accessibility/axe-results.json`](accessibility/axe-results.json),
 | Where | Keys |
 |---|---|
 | Anywhere | `Tab` / `Shift+Tab` move focus; the first `Tab` reaches **Skip to main content** |
-| Tabs (chart range, notification filter) | `←` / `→` previous/next tab (wraps), `Home` / `End` first/last; selection follows focus |
+| Anywhere | `Ctrl+K` (`⌘K` on Mac) focuses **Search people** in the top bar (`aria-keyshortcuts="Control+K Meta+K"`); `Enter` opens the Users list filtered by the query |
+| Tabs (Overview date range, Users status, notification filter) | `←` / `→` previous/next tab (wraps), `Home` / `End` first/last; selection follows focus |
 | Dialogs (edit user, delete, reset data) | Focus is trapped inside; `Esc` closes; focus returns to the trigger |
 | Mobile menu drawer | Focus is trapped; `Esc` closes; focus returns to the menu button |
 | Notification bell | `Enter`/`Space` toggles; `Esc` closes and returns focus |
@@ -97,23 +98,30 @@ From `npm run a11y` → `docs/accessibility/keyboard-results.json`:
 | # | Issue | WCAG | Found by | Fix |
 |---|---|---|---|---|
 | 1 | Pressing **Enter** in a wizard field did nothing. The intermediate steps had no submit button, and HTML ignores implicit submission when a form has 2+ text fields and no submit button. | 2.1.1 | Keyboard check (journey 10) | Each step's primary action (Continue / Create user) is now the form's submit button; added a regression test (`UserWizard.test.tsx`). |
-| 2 | Input/select borders were 1.48:1 (light) and 2.36:1 (dark), below the 3:1 needed to identify a field's boundary. | 1.4.11 | Manual contrast calculation (axe does not test 1.4.11) | Borders changed to slate-500: 4.8:1 light, 3.7:1 dark. |
-| 3 | The selected tab differed from the others only by a white background on slate-100 (1.1:1). | 1.4.11 | Manual review | Selected tab now uses a brand-600 fill with white text. |
-| 4 | The active sidebar link was indicated only by a brand-50 tint (1.1:1). `aria-current` covered screen readers but not sighted users. | 1.4.11 | Manual review | Added a 3 px brand-600/brand-300 indicator bar (6.3:1 / 9:1) and a semibold label. |
+| 2 | Input/select borders were 1.48:1 (light) and 2.36:1 (dark), below the 3:1 needed to identify a field's boundary. | 1.4.11 | Manual contrast calculation (axe does not test 1.4.11) | Borders darkened to pass 3:1. After the redesign they are #80858a, 3.6:1 (dark #6f6f6f, 3.8:1). |
+| 3 | The selected tab differed from the others only by a white background on slate-100 (1.1:1). | 1.4.11 | Manual review | Fixed with a filled selected tab. After the redesign, a 2px ink underline on a full-width rule (18:1). |
+| 4 | The active sidebar link was indicated only by a pale tint (1.1:1). `aria-current` covered screen readers but not sighted users. | 1.4.11 | Manual review | Fixed with an indicator bar. After the redesign: a grey pill plus an ink, semibold label, so the state never relies on the tint alone. |
 | 5 | At mobile width the dashboard's chart card overflowed the viewport: the implicit grid track was sized by its content. | 1.4.10 | Screenshot review | Explicit `grid-cols-1` (`minmax(0,1fr)`) + `min-w-0`; added an automated 320 px reflow check to `npm run a11y`. |
 | 6 | Toasts were first built as `<ol role="status">`. The role strips list semantics and would orphan the `<li>`s. | 1.3.1 | Code review | The live regions are now plain `div`s. |
 | F1 | Metric trends read as "**Up4.2%vs last period**": the text was split across flex items with no real whitespace. | 1.3.1 | NVDA test | A single sr-only sentence ("Up 4.2% vs last period"); the visual pieces are `aria-hidden`. |
 | F2 | The required-fields note read "**Fields marked as required are required.**" | 3.3.2 | NVDA test | The sr-only text now says "with an asterisk". |
 | F3 | Emails were read (and shown) as "**Sr.Tester@Example.Com**": `capitalize` was applied to every value in the wizard review and the Settings profile. | 1.3.1 | NVDA test | Only the role is title-cased; names and emails keep their real casing. |
+| F4 | Roster rows read "**Engineering22 of 25 activein Engineering**": grid cells carry no whitespace. | 1.3.1 | NVDA test (redesign) | Visual cells `aria-hidden`; one sr-only sentence per row ("Engineering: 22 of 25 active."). |
+| F5 | The `/` search shortcut was swallowed by NVDA's browse mode, and the typed letters ran NVDA commands. A single-key shortcut also fails 2.1.4. | 2.1.4 | NVDA test (redesign) | Replaced with Ctrl+K / ⌘K. |
+| F6 | Users table row header read "**Nuwan Kimnuwan.kim@…**" (stacked name and email). | 1.3.1 | NVDA test (redesign) | sr-only ", " between name and email (and between name and status on the phone list). |
+| F7 | Breakdown lists read "**Users updated186**". | 1.3.1 | NVDA test (redesign) | sr-only ": " between label and figure. |
+| F8 | Tab names read "**All6**", "**Unread5**". | 4.1.2 | NVDA test (redesign) | A real space before the count. |
+| F9 | Sidebar link name "**Notifications, 2unread**". | 4.1.2 | Code search after F4–F8 | The visible count is `aria-hidden`; the link carries one hidden phrase ", 2 unread". Not re-run with NVDA. |
 
 ## 6. Screen-reader testing and known limitations
 
 - **NVDA 2026.2 + Chrome: tested for real, 30/30 steps pass.** NVDA ran live while each step was performed with real keystrokes, including NVDA's own browse-mode commands (`H`, `D`, `T`, `G`, table navigation). Its speech was captured from the NVDA log. The test covered login errors, the skip link, landmarks, the heading outline, metrics, the chart summary, tabs, the bell menu, debounced search announcements, table navigation with row headers, sorting, both dialogs, toasts, the wizard and settings. It found **3 issues no automated tool caught** (F1–F3 in §5), all fixed and re-verified with NVDA. Full step-by-step results with NVDA's actual output: [`accessibility/screen-reader-test.md`](accessibility/screen-reader-test.md).
+- **The redesigned build was re-tested with NVDA** (2026-11-02, 31 steps). The test confirmed the new parts: the KPI strip read as one sentence per cell, the page-level range tabs, the workspace roster, the Ctrl+K people search, the Users status tabs and the breakdown rails. It found F4–F8. A code search for the same whitespace pattern then found F9, which is fixed but was not re-run with NVDA.
 - **Not tested:** JAWS, Narrator, VoiceOver (macOS/iOS) and TalkBack. The app uses only standard ARIA patterns, so they are expected to behave similarly, but this was not verified.
 - **Chart tooltip is pointer-only.** Keyboard and screen-reader users get the same information from the `<desc>` summary and the data table; NVDA reads the summary as "Revenue trend, graphic, Revenue from … up 53.2%. Highest …".
 - **Virtualised activity log.** Only visible rows exist in the DOM, so NVDA reports "list with 17 items" rather than the full 504. Every item reads in full, and the total ("504 events") is announced as a status message. The search box is the efficient way to find an event.
 - **Native multi-select** (in Storybook) is accessible but less discoverable for mouse users. A custom ARIA 1.2 combobox is a possible enhancement.
-- **Colour contrast in charts:** the trend line (brand-600) is 6.3:1 against the card. Grid lines are decorative and exempt.
+- **Colour contrast in charts:** the trend line (teal #1b6c80) is 6.0:1 against the card. Grid lines are decorative and exempt. In the workspace roster, active and inactive people differ by **shape** (filled versus hollow square), not only by colour, and every row also states its count in words ("22 of 25 active in Engineering").
 
 ## 7. How to reproduce
 

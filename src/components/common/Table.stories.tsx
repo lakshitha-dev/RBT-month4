@@ -16,7 +16,7 @@ interface Person {
 const PEOPLE: Person[] = Array.from({ length: 23 }, (_, i) => ({
   id: String(i + 1),
   name: ['Amara Perera', 'Ben Smith', 'Chen Kim', 'Dilani Silva', 'Elena Rossi', 'Farah Khan'][i % 6]! + ` ${i + 1}`,
-  email: `person${i + 1}@example.com`,
+  email: `person${i + 1}@adminflow.dev`,
   role: ['admin', 'editor', 'user'][i % 3]!,
   joined: new Date(2026, i % 12, (i % 27) + 1).toISOString().slice(0, 10),
 }));
@@ -42,7 +42,7 @@ function SortableTable({ isLoading = false, rows = PEOPLE }: { isLoading?: boole
   const visible = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+    <div className="bg-surface">
       <Table
         caption="Team members"
         columns={columns}
@@ -57,7 +57,7 @@ function SortableTable({ isLoading = false, rows = PEOPLE }: { isLoading?: boole
         emptyMessage="No team members yet."
       />
       {!isLoading && rows.length > 0 && (
-        <div className="border-t border-slate-200 p-4 dark:border-slate-800">
+        <div className="mt-2 border-t border-rule pt-4">
           <Pagination page={page} pageCount={pageCount} pageSize={PAGE_SIZE} total={rows.length} onPageChange={setPage} />
         </div>
       )}

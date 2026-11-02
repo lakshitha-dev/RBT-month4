@@ -1,7 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import * as usersApi from '@/api/users';
 import { notify } from '@/stores/notificationStore';
-import type { Paginated, User, UserInput, UsersQuery } from '@/types';
+import type { User, UserInput, UsersPage, UsersQuery } from '@/types';
 
 export const usersKeys = {
   all: ['users'] as const,
@@ -10,6 +10,13 @@ export const usersKeys = {
   details: () => [...usersKeys.all, 'detail'] as const,
   detail: (id: string) => [...usersKeys.details(), id] as const,
 };
+
+/** Users feed the lists, the roster (under ['users']) and the dashboard's Members figure. */
+const invalidateUserData = (client: QueryClient) =>
+  Promise.all([
+    client.invalidateQueries({ queryKey: usersKeys.all }),
+    client.invalidateQueries({ queryKey: ['dashboard', 'metrics'] }),
+  ]);
 
 const errorMessage = (error: unknown) => (error instanceof Error ? error.message : 'Something went wrong.');
 
@@ -30,15 +37,15 @@ export function useUser(id: string | undefined) {
   });
 }
 
-type ListSnapshot = [readonly unknown[], Paginated<User> | undefined][];
+type ListSnapshot = [readonly unknown[], UsersPage | undefined][];
 
 /** Applies `patch` to a user in every cached list page and detail entry; returns a rollback snapshot. */
 async function patchCachedUser(client: QueryClient, id: string, patch: Partial<User>) {
   await client.cancelQueries({ queryKey: usersKeys.all });
-  const lists: ListSnapshot = client.getQueriesData<Paginated<User>>({ queryKey: usersKeys.lists() });
+  const lists: ListSnapshot = client.getQueriesData<UsersPage>({ queryKey: usersKeys.lists() });
   const detail = client.getQueryData<User>(usersKeys.detail(id));
 
-  client.setQueriesData<Paginated<User>>({ queryKey: usersKeys.lists() }, (page) =>
+  client.setQueriesData<UsersPage>({ queryKey: usersKeys.lists() }, (page) =>
     page ? { ...page, items: page.items.map((u) => (u.id === id ? { ...u, ...patch } : u)) } : page,
   );
   if (detail) client.setQueryData<User>(usersKeys.detail(id), { ...detail, ...patch });
@@ -59,7 +66,7 @@ export function useCreateUser() {
     onSuccess: (user) => {
       notify({ type: 'success', title: 'User created', message: `${user.name} was added as ${user.role}.` });
     },
-    onSettled: () => client.invalidateQueries({ queryKey: usersKeys.all }),
+    onSettled: () => invalidateUserData(client),
   });
 }
 
@@ -74,7 +81,7 @@ export function useUpdateUser() {
       notify({ type: 'error', title: 'Update failed', message: errorMessage(error) });
     },
     onSuccess: (user) => notify({ type: 'success', title: 'User updated', message: `${user.name} was saved.` }),
-    onSettled: () => client.invalidateQueries({ queryKey: usersKeys.all }),
+    onSettled: () => invalidateUserData(client),
   });
 }
 
@@ -84,7 +91,7 @@ function undoDelete(client: QueryClient, user: User) {
     .restoreUser(user.id)
     .then(() => notify({ type: 'success', title: 'User restored', message: `${user.name} is back.` }))
     .catch((error) => notify({ type: 'error', title: 'Restore failed', message: errorMessage(error) }))
-    .finally(() => client.invalidateQueries({ queryKey: usersKeys.all }));
+    .finally(() => invalidateUserData(client));
 }
 
 export function useDeleteUser() {
@@ -104,7 +111,7 @@ export function useDeleteUser() {
         message: `${user.name} was moved to deleted users.`,
         action: { label: 'Undo', onClick: () => undoDelete(client, user) },
       }),
-    onSettled: () => client.invalidateQueries({ queryKey: usersKeys.all }),
+    onSettled: () => invalidateUserData(client),
   });
 }
 
@@ -118,6 +125,6 @@ export function useRestoreUser() {
       notify({ type: 'error', title: 'Restore failed', message: errorMessage(error) });
     },
     onSuccess: (user) => notify({ type: 'success', title: 'User restored', message: `${user.name} is back.` }),
-    onSettled: () => client.invalidateQueries({ queryKey: usersKeys.all }),
+    onSettled: () => invalidateUserData(client),
   });
 }

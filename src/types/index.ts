@@ -40,7 +40,8 @@ export interface AuthResponse {
 
 export type SortDirection = 'asc' | 'desc';
 export type UserSortField = 'name' | 'email' | 'role' | 'createdAt';
-export type StatusFilter = 'all' | 'active' | 'inactive';
+/** 'all' means every current member; deleted (soft-deleted) accounts are their own view. */
+export type StatusFilter = 'all' | 'active' | 'inactive' | 'deleted';
 
 export interface UsersQuery {
   page: number;
@@ -50,7 +51,6 @@ export interface UsersQuery {
   status: StatusFilter;
   sortBy: UserSortField;
   sortDir: SortDirection;
-  includeDeleted: boolean;
 }
 
 export interface Paginated<T> {
@@ -61,15 +61,37 @@ export interface Paginated<T> {
   pageCount: number;
 }
 
+/** How many users each status view holds for the current search and role filter. */
+export type StatusCounts = Record<StatusFilter, number>;
+
+export interface UsersPage extends Paginated<User> {
+  counts: StatusCounts;
+}
+
 export type MetricFormat = 'number' | 'currency' | 'percent';
 
 export interface Metric {
   id: 'users' | 'revenue' | 'orders' | 'conversion';
   label: string;
   value: number;
-  /** Percentage change vs the previous period. */
-  change: number;
+  /** Percentage change vs the previous period of the same length; null when there is nothing to compare. */
+  change: number | null;
+  /** Which direction is good for this metric, so colour says good/bad rather than up/down. */
+  goodDirection: 'up' | 'down';
+  /** One short line naming the baseline or context, e.g. "vs previous 30 days". */
+  caption: string;
   format: MetricFormat;
+}
+
+export interface RosterPerson {
+  id: string;
+  name: string;
+  isActive: boolean;
+}
+
+export interface RosterGroup {
+  department: string;
+  people: RosterPerson[];
 }
 
 export type TrendRange = '7d' | '30d' | '90d';

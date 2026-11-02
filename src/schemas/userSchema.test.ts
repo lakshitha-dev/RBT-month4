@@ -3,7 +3,7 @@ import { userSchema } from './userSchema';
 
 describe('userSchema', () => {
   it('accepts a valid user', () => {
-    const result = userSchema.safeParse({ name: 'Ada Lovelace', email: 'ada@example.com', role: 'admin', isActive: true });
+    const result = userSchema.safeParse({ name: 'Ada Lovelace', email: 'ada.lovelace@adminflow.dev', role: 'admin', isActive: true });
     expect(result.success).toBe(true);
   });
 

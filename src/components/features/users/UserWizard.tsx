@@ -97,19 +97,20 @@ export function UserWizard({ onSubmit, onCancel }: UserWizardProps) {
               <li key={s.title} className="flex flex-1 items-center gap-2" aria-current={current ? 'step' : undefined}>
                 <span
                   className={clsx(
-                    'flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
-                    done && 'bg-brand-600 text-white',
-                    current && 'border-2 border-brand-600 text-brand-700 dark:border-brand-300 dark:text-brand-200',
-                    !done && !current && 'border-2 border-slate-300 text-slate-600 dark:border-slate-600 dark:text-slate-400',
+                    'num flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
+                    // Done: filled ink with a check; current: ink ring; to do: control ring. All 3:1 or more.
+                    done && 'bg-primary text-on-primary',
+                    current && 'border-2 border-ink text-ink',
+                    !done && !current && 'border border-control text-muted',
                   )}
                 >
                   {done ? <CheckIcon /> : i + 1}
                 </span>
-                <span className={clsx('hidden text-sm font-medium sm:inline', current ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400')}>
+                <span className={clsx('hidden text-sm font-medium sm:inline', current ? 'text-ink' : 'text-muted')}>
                   {s.title}
                 </span>
                 <span className="sr-only">{done ? '(completed)' : current ? '(current step)' : ''}</span>
-                {i < STEPS.length - 1 && <span aria-hidden="true" className="h-px flex-1 bg-slate-300 dark:bg-slate-700" />}
+                {i < STEPS.length - 1 && <span aria-hidden="true" className="h-px flex-1 bg-line" />}
               </li>
             );
           })}
@@ -129,7 +130,7 @@ export function UserWizard({ onSubmit, onCancel }: UserWizardProps) {
         noValidate
         className="space-y-4"
       >
-        <h2 ref={stepHeadingRef} tabIndex={-1} className="text-lg font-semibold text-slate-900 dark:text-white">
+        <h2 ref={stepHeadingRef} tabIndex={-1} className="text-base font-semibold text-ink">
           Step {step + 1} of {STEPS.length}: {STEPS[step]!.title}
         </h2>
 
@@ -165,7 +166,7 @@ export function UserWizard({ onSubmit, onCancel }: UserWizardProps) {
 
         {step === 2 && (
           <>
-            <dl className="divide-y divide-slate-200 rounded-lg border border-slate-200 text-sm dark:divide-slate-800 dark:border-slate-800">
+            <dl className="divide-y divide-line rounded-card bg-raised text-sm">
               {[
                 ['Name', values.name],
                 ['Email', values.email],
@@ -175,8 +176,8 @@ export function UserWizard({ onSubmit, onCancel }: UserWizardProps) {
                 ['Invitation', values.sendInvite ? 'Will be sent' : 'Not sent'],
               ].map(([label, value]) => (
                 <div key={label} className="grid grid-cols-3 gap-4 px-4 py-2.5">
-                  <dt className="font-medium text-slate-600 dark:text-slate-400">{label}</dt>
-                  <dd className="col-span-2 break-words text-slate-900 dark:text-white">{value}</dd>
+                  <dt className="text-muted">{label}</dt>
+                  <dd className="col-span-2 break-words text-ink">{value}</dd>
                 </div>
               ))}
             </dl>
@@ -184,7 +185,7 @@ export function UserWizard({ onSubmit, onCancel }: UserWizardProps) {
           </>
         )}
 
-        <div className="flex flex-col-reverse gap-2 border-t border-slate-200 pt-4 sm:flex-row sm:justify-between dark:border-slate-800">
+        <div className="flex flex-col-reverse gap-2 border-t border-rule pt-4 sm:flex-row sm:justify-between">
           <Button variant="ghost" onClick={onCancel}>
             Cancel
           </Button>

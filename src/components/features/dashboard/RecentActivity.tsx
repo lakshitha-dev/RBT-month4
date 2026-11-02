@@ -1,43 +1,40 @@
 import { Link } from 'react-router-dom';
 import { useActivity } from '@/hooks/useDashboard';
-import { Alert } from '@/components/common/Alert';
-import { Card } from '@/components/common/Card';
 import { Skeleton } from '@/components/common/Skeleton';
 import { ActivityItem } from './ActivityItem';
 
+const ROWS = 5;
+
+/** Rail block: the heading sits outside its card; capped rows closed by "View all", never pagination. */
 export function RecentActivity() {
-  const { data, isPending, isError, refetch } = useActivity(8);
+  const { data, isPending, isError, refetch } = useActivity(ROWS);
 
   return (
-    <Card className="h-full">
-      <Card.Header
-        title="Recent activity"
-        actions={
-          <Link to="/activity" className="text-sm font-medium text-brand-700 hover:underline dark:text-brand-300">
-            View all<span className="sr-only"> activity</span>
-          </Link>
-        }
-      />
-      <Card.Body className="py-1">
+    <section aria-labelledby="recent-activity-heading">
+      <h2 id="recent-activity-heading" className="mb-2 text-base font-semibold text-ink">
+        Recent activity
+      </h2>
+      <div className="rounded-card border border-line bg-surface px-4">
         {isError ? (
-          <Alert
-            variant="error"
-            title="Couldn't load activity"
-            className="my-3"
-            action={
-              <button type="button" className="font-semibold underline" onClick={() => refetch()}>
-                Retry
-              </button>
-            }
-          />
+          <div className="flex items-center justify-between gap-3 py-4 text-sm">
+            <p className="text-ink">Couldn't load activity.</p>
+            <button type="button" className="font-medium text-ink underline underline-offset-2" onClick={() => refetch()}>
+              Retry
+            </button>
+          </div>
         ) : isPending ? (
-          <div role="status" aria-label="Loading activity" className="space-y-4 py-3">
-            {Array.from({ length: 6 }, (_, i) => (
-              <Skeleton key={i} className="h-7" />
+          <div role="status" aria-label="Loading activity" className="divide-y divide-rule">
+            {Array.from({ length: ROWS }, (_, i) => (
+              <div key={i} className="flex h-12 items-center gap-3">
+                <Skeleton className="size-7 rounded-full" />
+                <Skeleton className="h-4 flex-1" />
+              </div>
             ))}
           </div>
+        ) : data.length === 0 ? (
+          <p className="py-4 text-sm text-muted">No changes have been made in this workspace yet.</p>
         ) : (
-          <ul className="divide-y divide-slate-200 dark:divide-slate-800">
+          <ul className="divide-y divide-rule">
             {data.map((activity) => (
               <li key={activity.id}>
                 <ActivityItem activity={activity} />
@@ -45,7 +42,15 @@ export function RecentActivity() {
             ))}
           </ul>
         )}
-      </Card.Body>
-    </Card>
+        <div className="border-t border-rule py-3">
+          <Link
+            to="/activity"
+            className="flex h-8 w-full items-center justify-center rounded-control border border-control text-sm font-medium text-ink hover:bg-raised"
+          >
+            View all<span className="sr-only"> activity</span>
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }

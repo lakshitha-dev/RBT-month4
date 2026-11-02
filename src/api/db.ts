@@ -12,7 +12,7 @@ interface Database {
   trend: TrendPoint[];
 }
 
-const STORAGE_KEY = 'adminflow-db-v1';
+const STORAGE_KEY = 'adminflow-db-v2';
 
 function load(): Database {
   try {

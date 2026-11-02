@@ -68,7 +68,7 @@ export function Modal({
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
       <div
-        className="animate-fade-in absolute inset-0 bg-slate-950/60"
+        className="animate-fade-in absolute inset-0 bg-black/45"
         aria-hidden="true"
         onClick={closeOnOverlayClick ? onClose : undefined}
       />
@@ -80,17 +80,18 @@ export function Modal({
         aria-describedby={description ? descriptionId : undefined}
         tabIndex={-1}
         className={clsx(
-          'animate-toast-in relative flex max-h-[90vh] w-full flex-col rounded-xl bg-white shadow-xl dark:bg-slate-900 dark:ring-1 dark:ring-slate-700',
+          // A dialog floats, so it may carry a shadow. taste-skill-ignore: real overlay
+          'animate-rise-in relative flex max-h-[90vh] w-full flex-col rounded-[12px] border border-line bg-surface shadow-[0_16px_48px_rgb(0_0_0/0.18)]',
           sizes[size],
         )}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-4 dark:border-slate-700">
+        <div className="flex items-start justify-between gap-4 px-6 pt-5 pb-3">
           <div>
-            <h2 id={titleId} className="text-lg font-semibold text-slate-900 dark:text-white">
+            <h2 id={titleId} className="text-lg font-semibold text-ink">
               {title}
             </h2>
             {description && (
-              <div id={descriptionId} className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+              <div id={descriptionId} className="mt-1 text-sm text-muted">
                 {description}
               </div>
             )}
@@ -99,14 +100,14 @@ export function Modal({
             type="button"
             onClick={onClose}
             aria-label="Close dialog"
-            className="-mr-2 rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+            className="-mt-1 -mr-2 rounded-control p-2 text-muted hover:bg-raised hover:text-ink"
           >
             <CloseIcon />
           </button>
         </div>
-        {children && <div className="overflow-y-auto px-6 py-4">{children}</div>}
+        {children && <div className="overflow-y-auto px-6 pt-2 pb-5">{children}</div>}
         {footer && (
-          <div className="flex flex-col-reverse gap-2 border-t border-slate-200 px-6 py-4 sm:flex-row sm:justify-end dark:border-slate-700">
+          <div className="flex flex-col-reverse gap-2 border-t border-rule px-6 py-4 sm:flex-row sm:justify-end">
             {footer}
           </div>
         )}

@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { ROLES, type Role, type StatusFilter, type UserSortField, type UsersQuery } from '@/types';
 
 const SORT_FIELDS: UserSortField[] = ['name', 'email', 'role', 'createdAt'];
-const STATUSES: StatusFilter[] = ['all', 'active', 'inactive'];
+const STATUSES: StatusFilter[] = ['all', 'active', 'inactive', 'deleted'];
 export const PAGE_SIZES = [10, 20, 50];
 
 export const DEFAULT_USERS_QUERY: UsersQuery = {
@@ -14,7 +14,6 @@ export const DEFAULT_USERS_QUERY: UsersQuery = {
   status: 'all',
   sortBy: 'createdAt',
   sortDir: 'desc',
-  includeDeleted: false,
 };
 
 const oneOf = <T extends string>(value: string | null, allowed: readonly T[], fallback: T): T =>
@@ -38,7 +37,6 @@ export function useUsersQueryParams() {
       status: oneOf(params.get('status'), STATUSES, d.status),
       sortBy: oneOf(params.get('sort'), SORT_FIELDS, d.sortBy),
       sortDir: oneOf(params.get('dir'), ['asc', 'desc'], d.sortDir),
-      includeDeleted: params.get('deleted') === '1',
     };
   }, [params]);
 
@@ -59,7 +57,6 @@ export function useUsersQueryParams() {
           if (patch.sortBy !== undefined) set('sort', patch.sortBy, patch.sortBy === d.sortBy);
           if (patch.sortDir !== undefined) set('dir', patch.sortDir, patch.sortDir === d.sortDir);
           if (patch.pageSize !== undefined) set('size', patch.pageSize, patch.pageSize === d.pageSize);
-          if (patch.includeDeleted !== undefined) set('deleted', '1', !patch.includeDeleted);
           const page = patch.page ?? 1;
           set('page', page, page === 1);
           return next;

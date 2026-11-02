@@ -29,7 +29,7 @@ const preview: Preview = {
       const dark = context.globals.theme === 'dark';
       document.documentElement.classList.toggle('dark', dark);
       return (
-        <div className="bg-slate-50 p-4 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+        <div className="bg-surface p-4 text-ink">
           <Story />
         </div>
       );

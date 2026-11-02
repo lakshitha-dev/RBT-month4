@@ -10,14 +10,14 @@ export default function UserCreatePage() {
   const createUser = useCreateUser();
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="max-w-2xl">
       <Link
         to="/users"
-        className="mb-4 inline-flex items-center gap-1 text-sm font-medium text-brand-700 hover:underline dark:text-brand-300"
+        className="mb-3 inline-flex items-center gap-1 text-sm text-muted hover:text-ink"
       >
         <ChevronLeftIcon /> Back to users
       </Link>
-      <PageHeader title="Add user" description="Create a new account in three quick steps." />
+      <PageHeader title="Add user" description="New accounts can sign in as soon as they are created." />
       <Card>
         <Card.Body className="p-5 sm:p-6">
           <UserWizard

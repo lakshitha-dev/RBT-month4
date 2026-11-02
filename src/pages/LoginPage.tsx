@@ -3,6 +3,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { selectIsAuthenticated, useAuthStore } from '@/stores/authStore';
 import { notify } from '@/stores/notificationStore';
 import { LoginForm } from '@/components/features/auth/LoginForm';
+import { Wordmark } from '@/components/layout/BrandMark';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
 
 export default function LoginPage() {
@@ -22,19 +23,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-brand-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-brand-800/30">
-      <header className="flex items-center justify-between p-4 sm:p-6">
-        <div className="flex items-center gap-2">
-          <img src="/favicon.svg" alt="" width={32} height={32} className="size-8" />
-          <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">AdminFlow</span>
-        </div>
+    // Same tinted frame as the app; the sign-in form sits on one white sheet. No gradient, no shadow.
+    <div className="flex min-h-screen flex-col bg-ground">
+      <header className="flex h-12 items-center justify-between px-4 sm:px-6">
+        <Wordmark />
         <ThemeToggle />
       </header>
-      <main id="main-content" className="flex flex-1 items-center justify-center px-4 pb-16">
-        <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl sm:p-8 dark:border-slate-800 dark:bg-slate-900">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Sign in to AdminFlow</h1>
-          <p className="mt-1 mb-6 text-sm text-slate-600 dark:text-slate-400">
-            {from ? 'Please sign in to continue to the page you requested.' : 'Welcome back! Enter your details below.'}
+      <main id="main-content" className="flex flex-1 items-start justify-center px-4 pt-[12vh] pb-16">
+        <div className="w-full max-w-[400px] rounded-sheet border border-line bg-surface p-6 sm:p-8">
+          <h1 className="text-[22px] leading-7 font-semibold tracking-[-0.01em] text-ink">Sign in to AdminFlow</h1>
+          <p className="mt-1 mb-6 text-sm text-muted">
+            {from ? 'Sign in to continue to the page you asked for.' : 'The admin console for your workspace.'}
           </p>
           <LoginForm onSuccess={onSuccess} />
         </div>

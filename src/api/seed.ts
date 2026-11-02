@@ -34,7 +34,7 @@ export function seedUsers(count = 124, now = Date.now()): User[] {
     return {
       id: `usr_${(i + 1).toString().padStart(4, '0')}`,
       name: `${first} ${last}`,
-      email: `${first}.${last}`.toLowerCase().replace(/[^a-z.]/g, '') + '@example.com',
+      email: `${first}.${last}`.toLowerCase().replace(/[^a-z.]/g, '') + '@adminflow.dev',
       role,
       isActive: rand() > 0.18,
       department: pick(DEPARTMENTS),
@@ -45,7 +45,7 @@ export function seedUsers(count = 124, now = Date.now()): User[] {
   });
 }
 
-export function seedTrend(days = 90, now = Date.now()): TrendPoint[] {
+export function seedTrend(days = 180, now = Date.now()): TrendPoint[] {
   const rand = mulberry32(7);
   let revenue = 8200;
   return Array.from({ length: days }, (_, i) => {

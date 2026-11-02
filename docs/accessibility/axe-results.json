@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-02T08:13:46.019Z",
+  "generated": "2026-11-02T11:27:08.154Z",
   "tags": [
     "wcag2a",
     "wcag2aa",
@@ -12,14 +12,14 @@
       "scenario": "Login",
       "theme": "light",
       "path": "/login",
-      "passes": 37,
+      "passes": 34,
       "violations": []
     },
     {
       "scenario": "Login — validation errors",
       "theme": "light",
       "path": "/login",
-      "passes": 37,
+      "passes": 34,
       "violations": []
     },
     {
@@ -33,49 +33,49 @@
       "scenario": "Users list",
       "theme": "light",
       "path": "/users",
-      "passes": 49,
+      "passes": 48,
       "violations": []
     },
     {
       "scenario": "Users — edit modal",
       "theme": "light",
       "path": "/users",
-      "passes": 51,
+      "passes": 50,
       "violations": []
     },
     {
       "scenario": "Users — delete confirmation",
       "theme": "light",
       "path": "/users",
-      "passes": 51,
+      "passes": 50,
       "violations": []
     },
     {
       "scenario": "Users — filtered (no results)",
       "theme": "light",
       "path": "/users?q=zzzz-nobody",
-      "passes": 49,
+      "passes": 48,
       "violations": []
     },
     {
       "scenario": "Add user wizard — validation errors",
       "theme": "light",
       "path": "/users/new",
-      "passes": 43,
+      "passes": 41,
       "violations": []
     },
     {
       "scenario": "Activity log (virtualised)",
       "theme": "light",
       "path": "/activity",
-      "passes": 44,
+      "passes": 42,
       "violations": []
     },
     {
       "scenario": "Notifications",
       "theme": "light",
       "path": "/notifications",
-      "passes": 41,
+      "passes": 42,
       "violations": []
     },
     {
@@ -89,28 +89,28 @@
       "scenario": "Settings",
       "theme": "light",
       "path": "/settings",
-      "passes": 43,
+      "passes": 42,
       "violations": []
     },
     {
       "scenario": "Mobile navigation drawer",
       "theme": "light",
       "path": "/",
-      "passes": 47,
+      "passes": 45,
       "violations": []
     },
     {
       "scenario": "Login",
       "theme": "dark",
       "path": "/login",
-      "passes": 37,
+      "passes": 34,
       "violations": []
     },
     {
       "scenario": "Login — validation errors",
       "theme": "dark",
       "path": "/login",
-      "passes": 37,
+      "passes": 34,
       "violations": []
     },
     {
@@ -124,49 +124,49 @@
       "scenario": "Users list",
       "theme": "dark",
       "path": "/users",
-      "passes": 49,
+      "passes": 48,
       "violations": []
     },
     {
       "scenario": "Users — edit modal",
       "theme": "dark",
       "path": "/users",
-      "passes": 51,
+      "passes": 50,
       "violations": []
     },
     {
       "scenario": "Users — delete confirmation",
       "theme": "dark",
       "path": "/users",
-      "passes": 51,
+      "passes": 50,
       "violations": []
     },
     {
       "scenario": "Users — filtered (no results)",
       "theme": "dark",
       "path": "/users?q=zzzz-nobody",
-      "passes": 49,
+      "passes": 48,
       "violations": []
     },
     {
       "scenario": "Add user wizard — validation errors",
       "theme": "dark",
       "path": "/users/new",
-      "passes": 43,
+      "passes": 41,
       "violations": []
     },
     {
       "scenario": "Activity log (virtualised)",
       "theme": "dark",
       "path": "/activity",
-      "passes": 44,
+      "passes": 42,
       "violations": []
     },
     {
       "scenario": "Notifications",
       "theme": "dark",
       "path": "/notifications",
-      "passes": 41,
+      "passes": 42,
       "violations": []
     },
     {
@@ -180,14 +180,14 @@
       "scenario": "Settings",
       "theme": "dark",
       "path": "/settings",
-      "passes": 43,
+      "passes": 42,
       "violations": []
     },
     {
       "scenario": "Mobile navigation drawer",
       "theme": "dark",
       "path": "/",
-      "passes": 47,
+      "passes": 45,
       "violations": []
     }
   ]

@@ -1,44 +1,48 @@
-import type { Activity, Metric, TrendPoint, TrendRange } from '@/types';
+import { DEPARTMENTS, type Activity, type Metric, type RosterGroup, type TrendPoint, type TrendRange } from '@/types';
 import { clone, latency } from './client';
 import { getDb } from './db';
 
-const RANGE_DAYS: Record<TrendRange, number> = { '7d': 7, '30d': 30, '90d': 90 };
+export const RANGE_DAYS: Record<TrendRange, number> = { '7d': 7, '30d': 30, '90d': 90 };
+const DAY = 86_400_000;
+// The mock has no traffic data, so daily visits are a fixed synthetic figure.
+const VISITS_PER_DAY = 3_150;
 
-const sum = (points: TrendPoint[], key: 'revenue' | 'orders') =>
-  points.reduce((total, p) => total + p[key], 0);
+const sum = (points: TrendPoint[], key: 'revenue' | 'orders') => points.reduce((total, p) => total + p[key], 0);
 
 const pctChange = (current: number, previous: number) =>
-  previous === 0 ? 0 : Math.round(((current - previous) / previous) * 1000) / 10;
+  previous === 0 ? null : Math.round(((current - previous) / previous) * 1000) / 10;
 
-export async function getMetrics(): Promise<Metric[]> {
+/** Every figure is computed from the rows for the chosen range, and compared with the period before it. */
+export async function getMetrics(range: TrendRange = '30d'): Promise<Metric[]> {
   await latency();
+  const days = RANGE_DAYS[range];
   const { users, trend } = getDb();
-  const last30 = trend.slice(-30);
-  const prev30 = trend.slice(-60, -30);
-  const activeUsers = users.filter((u) => !u.deletedAt);
-  const monthAgo = Date.now() - 30 * 86_400_000;
-  const newUsers = activeUsers.filter((u) => new Date(u.createdAt).getTime() > monthAgo).length;
+  const current = trend.slice(-days);
+  const previous = trend.slice(-days * 2, -days);
+  const baseline = `vs prior ${days} days`;
 
-  const revenue = sum(last30, 'revenue');
-  const orders = sum(last30, 'orders');
-  const prevRevenue = sum(prev30, 'revenue');
-  const prevOrders = sum(prev30, 'orders');
-  // The mock has no traffic data, so visits are a fixed synthetic figure.
-  const visits = 95_000;
-  const conversion = Math.round((orders / visits) * 1000) / 10;
-  const prevConversion = Math.round((prevOrders / visits) * 1000) / 10;
+  const members = users.filter((u) => !u.deletedAt);
+  const since = Date.now() - days * DAY;
+  const joined = members.filter((u) => new Date(u.createdAt).getTime() > since).length;
+
+  const revenue = sum(current, 'revenue');
+  const orders = sum(current, 'orders');
+  const conversion = Math.round((orders / (VISITS_PER_DAY * days)) * 1000) / 10;
+  const prevConversion = Math.round((sum(previous, 'orders') / (VISITS_PER_DAY * days)) * 1000) / 10;
 
   return [
     {
       id: 'users',
-      label: 'Total users',
-      value: activeUsers.length,
-      change: pctChange(activeUsers.length, activeUsers.length - newUsers),
+      label: 'Members',
+      value: members.length,
+      change: null,
+      goodDirection: 'up',
+      caption: joined === 0 ? `No one joined in ${days} days` : `+${joined} joined in ${days} days`,
       format: 'number',
     },
-    { id: 'revenue', label: 'Revenue (30d)', value: revenue, change: pctChange(revenue, prevRevenue), format: 'currency' },
-    { id: 'orders', label: 'Orders (30d)', value: orders, change: pctChange(orders, prevOrders), format: 'number' },
-    { id: 'conversion', label: 'Conversion rate', value: conversion, change: pctChange(conversion, prevConversion), format: 'percent' },
+    { id: 'revenue', label: 'Revenue', value: revenue, change: pctChange(revenue, sum(previous, 'revenue')), goodDirection: 'up', caption: baseline, format: 'currency' },
+    { id: 'orders', label: 'Orders', value: orders, change: pctChange(orders, sum(previous, 'orders')), goodDirection: 'up', caption: baseline, format: 'number' },
+    { id: 'conversion', label: 'Conversion', value: conversion, change: pctChange(conversion, prevConversion), goodDirection: 'up', caption: baseline, format: 'percent' },
   ];
 }
 
@@ -51,4 +55,17 @@ export async function getActivity(limit?: number): Promise<Activity[]> {
   await latency(200, 450);
   const { activity } = getDb();
   return clone(limit ? activity.slice(0, limit) : activity);
+}
+
+/** Everyone in the workspace (deleted accounts excluded), grouped by department in a fixed order. */
+export async function getRoster(): Promise<RosterGroup[]> {
+  await latency(200, 450);
+  const members = getDb().users.filter((u) => !u.deletedAt);
+  return DEPARTMENTS.map((department) => ({
+    department,
+    people: members
+      .filter((u) => u.department === department)
+      .sort((a, b) => Number(b.isActive) - Number(a.isActive) || a.name.localeCompare(b.name))
+      .map(({ id, name, isActive }) => ({ id, name, isActive })),
+  })).filter((g) => g.people.length > 0);
 }

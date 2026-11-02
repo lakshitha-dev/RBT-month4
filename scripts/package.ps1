@@ -18,7 +18,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Storybook build failed' }
 # App source: copy to a staging folder without heavy/generated directories, then zip.
 $stage = Join-Path ([IO.Path]::GetTempPath()) "$Name-month4-app"
 if (Test-Path $stage) { Remove-Item -Recurse -Force $stage }
-$exclude = @('node_modules', 'dist', 'storybook-static', 'submission', '.git')
+$exclude = @('node_modules', 'dist', 'storybook-static', 'submission', '.git', '.taste-skill')
 Get-ChildItem -Force $root | Where-Object { $exclude -notcontains $_.Name } | ForEach-Object {
   Copy-Item -Recurse -Force $_.FullName (Join-Path $stage $_.Name)
 }

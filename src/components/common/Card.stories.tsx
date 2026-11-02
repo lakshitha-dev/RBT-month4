@@ -23,7 +23,7 @@ export const HeaderBodyFooter: Story = {
     <Card>
       <Card.Header title="Team plan" description="Billed monthly" />
       <Card.Body>
-        <p className="text-sm text-slate-700 dark:text-slate-300">
+        <p className="text-sm text-ink">
           Up to 25 seats, audit log, SSO and priority support.
         </p>
       </Card.Body>

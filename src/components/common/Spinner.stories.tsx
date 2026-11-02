@@ -6,7 +6,7 @@ const meta = {
   component: Spinner,
   args: { size: 'md', label: 'Loading' },
   argTypes: { size: { control: 'inline-radio', options: ['sm', 'md', 'lg'] } },
-  decorators: [(Story) => <div className="text-brand-600 dark:text-brand-300"><Story /></div>],
+  decorators: [(Story) => <div className="text-muted"><Story /></div>],
   parameters: {
     docs: {
       description: {

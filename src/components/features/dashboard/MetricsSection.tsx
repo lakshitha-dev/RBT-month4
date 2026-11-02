@@ -1,28 +1,28 @@
 import { useMetrics } from '@/hooks/useDashboard';
-import { Alert } from '@/components/common/Alert';
-import { Button } from '@/components/common/Button';
+import type { TrendRange } from '@/types';
 import { MetricCard, MetricCardSkeleton } from './MetricCard';
 
-export function MetricsSection() {
-  const metrics = useMetrics();
+/** One container split by 1px dividers into four equal cells (2 x 2 on phones). */
+export function MetricsSection({ range }: { range: TrendRange }) {
+  const metrics = useMetrics(range);
 
   return (
-    <section aria-labelledby="metrics-heading" className="mb-6">
+    <section aria-labelledby="metrics-heading">
       <h2 id="metrics-heading" className="sr-only">
         Key metrics
       </h2>
       {metrics.isError ? (
-        <Alert
-          variant="error"
-          title="Couldn't load metrics"
-          action={
-            <Button size="sm" variant="secondary" onClick={() => metrics.refetch()}>
-              Retry
-            </Button>
-          }
-        />
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-line px-5 py-4 text-sm">
+          <p className="text-ink">Couldn't load the metrics.</p>
+          <button type="button" className="font-medium text-ink underline underline-offset-2" onClick={() => metrics.refetch()}>
+            Retry
+          </button>
+        </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4" aria-busy={metrics.isPending}>
+        <div
+          aria-busy={metrics.isFetching}
+          className="grid grid-cols-2 overflow-hidden rounded-card border border-line xl:grid-cols-4 [&>*]:border-line max-xl:[&>*:nth-child(-n+2)]:border-b max-xl:[&>*:nth-child(odd)]:border-r xl:[&>*:not(:last-child)]:border-r"
+        >
           {metrics.isPending
             ? Array.from({ length: 4 }, (_, i) => <MetricCardSkeleton key={i} />)
             : metrics.data.map((metric) => <MetricCard key={metric.id} metric={metric} />)}

@@ -39,7 +39,7 @@ function TabsRoot({ value, onValueChange, children, className }: TabsProps) {
   );
 }
 
-function TabList({ children, label, className }: { children: ReactNode; label: string; className?: string }) {
+function TabList({ children, label, className, ruled = true }: { children: ReactNode; label: string; className?: string; ruled?: boolean }) {
   const listRef = useRef<HTMLDivElement>(null);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -67,7 +67,8 @@ function TabList({ children, label, className }: { children: ReactNode; label: s
       role="tablist"
       aria-label={label}
       onKeyDown={onKeyDown}
-      className={clsx('inline-flex gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-800', className)}
+      // Underline tabs on a full-width rule; the selected tab carries a 2px ink indicator (high contrast, WCAG 1.4.11).
+      className={clsx('flex gap-6 overflow-x-auto', ruled && 'border-b border-line', className)}
     >
       {children}
     </div>
@@ -88,10 +89,10 @@ function Tab({ value, children, disabled }: { value: string; children: ReactNode
       disabled={disabled}
       onClick={() => onValueChange(value)}
       className={clsx(
-        'rounded-md px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50',
+        '-mb-px shrink-0 border-b-2 pt-1 pb-2.5 text-sm whitespace-nowrap transition-colors disabled:opacity-50',
         isSelected
-          ? 'bg-brand-600 text-white shadow-sm'
-          : 'text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white',
+          ? 'border-ink font-semibold text-ink'
+          : 'border-transparent font-medium text-muted hover:border-control hover:text-ink',
       )}
     >
       {children}

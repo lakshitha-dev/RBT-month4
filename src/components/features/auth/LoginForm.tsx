@@ -65,16 +65,12 @@ export function LoginForm({ onSuccess }: { onSuccess: () => void }) {
       <Button type="submit" fullWidth size="lg" isLoading={isLoading}>
         {isLoading ? 'Signing in…' : 'Sign in'}
       </Button>
-      <div className="rounded-lg border border-dashed border-slate-300 p-3 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-300">
-        <p>
-          Demo account: <span className="font-mono">{DEMO_CREDENTIALS.email}</span> /{' '}
-          <span className="font-mono">{DEMO_CREDENTIALS.password}</span>
+      <div className="rounded-card bg-raised p-3 text-sm">
+        <p className="text-muted">
+          Demo account: <span className="text-ink">{DEMO_CREDENTIALS.email}</span> ·{' '}
+          <span className="text-ink">{DEMO_CREDENTIALS.password}</span>
         </p>
-        <button
-          type="button"
-          onClick={fillDemo}
-          className="mt-1 font-medium text-brand-700 hover:underline dark:text-brand-300"
-        >
+        <button type="button" onClick={fillDemo} className="mt-1 font-medium text-ink underline underline-offset-2 hover:text-accent">
           Fill in demo credentials
         </button>
       </div>

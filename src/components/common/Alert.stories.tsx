@@ -23,7 +23,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Info: Story = { args: { variant: 'info', title: 'New feature', children: 'You can now export users to CSV.' } };
 
-export const Success: Story = { args: { variant: 'success', title: 'User created', children: 'Jane Doe was added as an editor.' } };
+export const Success: Story = { args: { variant: 'success', title: 'User created', children: 'Nuwan Silva was added as an editor.' } };
 
 export const Warning: Story = { args: { variant: 'warning', title: 'Storage at 82%', children: 'Consider archiving old exports.' } };
 

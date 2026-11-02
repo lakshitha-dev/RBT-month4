@@ -13,3 +13,6 @@ docs/lighthouse/*.pdf
 
 # Local tool state
 .specclaw/
+
+# Design-inspection output (taste-skill)
+.taste-skill/

@@ -20,25 +20,28 @@ const WIDTH = 640;
 // chart is drawn at ~half scale (22 units ≈ 11px) and normal size from the sm breakpoint.
 const PAD = { top: 16, right: 16, bottom: 28, left: 48 };
 
-function niceMax(value: number) {
-  if (value <= 0) return 1;
-  const magnitude = 10 ** Math.floor(Math.log10(value));
-  return Math.ceil(value / magnitude) * magnitude;
+/** Round, even ticks (steps of 1, 2, 2.5 or 5 x 10^n) with the top tick above the maximum: 4-6 ticks. */
+function niceScale(value: number): { max: number; step: number } {
+  if (value <= 0) return { max: 1, step: 0.25 };
+  const rough = value / 5;
+  const magnitude = 10 ** Math.floor(Math.log10(rough));
+  const step = [1, 2, 2.5, 5, 10].map((m) => m * magnitude).find((s) => s >= rough)!;
+  const max = Math.ceil(value / step) * step;
+  return { max: max === value ? max + step : max, step };
 }
 
 /**
  * Dependency-free, responsive SVG line chart. Exposes a text summary to assistive
  * tech (role="img" + title/desc) and an equivalent data table for full detail.
  */
-export const LineChart = memo(function LineChart({ data, seriesLabel, formatValue, height = 260 }: LineChartProps) {
+export const LineChart = memo(function LineChart({ data, seriesLabel, formatValue, height = 240 }: LineChartProps) {
   const titleId = useId();
   const descId = useId();
-  const gradientId = useId();
   const [active, setActive] = useState<number | null>(null);
 
   const geometry = useMemo(() => {
     const values = data.map((d) => d.y);
-    const max = niceMax(Math.max(...values, 0));
+    const { max, step: tickStep } = niceScale(Math.max(...values, 0));
     const innerW = WIDTH - PAD.left - PAD.right;
     const innerH = height - PAD.top - PAD.bottom;
     const step = data.length > 1 ? innerW / (data.length - 1) : 0;
@@ -50,7 +53,10 @@ export const LineChart = memo(function LineChart({ data, seriesLabel, formatValu
     const area = points.length
       ? `${line} L${points.at(-1)!.x.toFixed(1)},${PAD.top + innerH} L${PAD.left},${PAD.top + innerH} Z`
       : '';
-    const ticks = [0, 0.25, 0.5, 0.75, 1].map((t) => ({ value: max * t, y: PAD.top + innerH - t * innerH }));
+    const ticks = Array.from({ length: Math.round(max / tickStep) + 1 }, (_, i) => i * tickStep).map((v) => ({
+      value: v,
+      y: PAD.top + innerH - (v / max) * innerH,
+    }));
     // ~5 evenly spaced date labels. The latest date is always labelled; the regular label
     // just before it is dropped when it is less than a full interval away (they would overlap).
     const labelEvery = Math.max(1, Math.ceil(data.length / 5));
@@ -99,12 +105,6 @@ export const LineChart = memo(function LineChart({ data, seriesLabel, formatValu
       >
         <title id={titleId}>{`${seriesLabel} trend`}</title>
         <desc id={descId}>{summary}</desc>
-        <defs>
-          <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" className="[stop-color:var(--color-brand-500)]" stopOpacity="0.25" />
-            <stop offset="100%" className="[stop-color:var(--color-brand-500)]" stopOpacity="0" />
-          </linearGradient>
-        </defs>
         {geometry.ticks.map((tick) => (
           <g key={tick.value}>
             <line
@@ -112,10 +112,10 @@ export const LineChart = memo(function LineChart({ data, seriesLabel, formatValu
               x2={WIDTH - PAD.right}
               y1={tick.y}
               y2={tick.y}
-              className="stroke-slate-200 dark:stroke-slate-800"
-              strokeDasharray={tick.value === 0 ? undefined : '4 4'}
+              // Faint solid gridlines; the baseline is the one heavier line. No y-axis line.
+              className={tick.value === 0 ? 'stroke-control' : 'stroke-grid'}
             />
-            <text x={PAD.left - 8} y={tick.y} dy="0.32em" textAnchor="end" className="fill-slate-600 text-[22px] sm:text-[12px] dark:fill-slate-400">
+            <text x={PAD.left - 8} y={tick.y} dy="0.32em" textAnchor="end" className="num fill-muted text-[22px] sm:text-[12px]">
               {formatCompact(tick.value)}
             </text>
           </g>
@@ -127,14 +127,15 @@ export const LineChart = memo(function LineChart({ data, seriesLabel, formatValu
               x={geometry.points[i]!.x}
               y={height - 8}
               textAnchor={i === 0 ? 'start' : i === data.length - 1 ? 'end' : 'middle'}
-              className="fill-slate-600 text-[22px] sm:text-[12px] dark:fill-slate-400"
+              className="num fill-muted text-[22px] sm:text-[12px]"
             >
               {formatShortDate(d.x)}
             </text>
           ) : null,
         )}
-        <path d={geometry.area} fill={`url(#${gradientId})`} />
-        <path d={geometry.line} fill="none" strokeWidth={2.5} strokeLinejoin="round" className="stroke-brand-600 dark:stroke-brand-400" />
+        {/* A flat tint (no gradient) under one 2px line in the product's teal: the screen's main data hue. */}
+        <path d={geometry.area} className="fill-accent-soft" />
+        <path d={geometry.line} fill="none" strokeWidth={2} strokeLinejoin="round" className="stroke-accent" />
         {activePoint && (
           <g>
             <line
@@ -142,26 +143,22 @@ export const LineChart = memo(function LineChart({ data, seriesLabel, formatValu
               x2={activePoint.x}
               y1={PAD.top}
               y2={height - PAD.bottom}
-              className="stroke-slate-400 dark:stroke-slate-500"
-              strokeDasharray="3 3"
+              className="stroke-control"
             />
-            <circle cx={activePoint.x} cy={activePoint.y} r={5} strokeWidth={2} className="fill-white stroke-brand-600 dark:fill-slate-900 dark:stroke-brand-400" />
+            <circle cx={activePoint.x} cy={activePoint.y} r={5} strokeWidth={2} className="fill-surface stroke-accent" />
           </g>
         )}
       </svg>
       {activePoint && activeDatum && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute top-0 rounded-lg bg-slate-900 px-3 py-2 text-xs text-white shadow-lg dark:bg-white dark:text-slate-900"
+          className="num pointer-events-none absolute top-0 rounded-control bg-primary px-2.5 py-1.5 text-xs whitespace-nowrap text-on-primary"
           style={{
             left: `${(activePoint.x / WIDTH) * 100}%`,
             transform: `translateX(${activePoint.x > WIDTH / 2 ? 'calc(-100% - 12px)' : '12px'})`,
           }}
         >
-          <p className="font-medium">{formatShortDate(activeDatum.x)}</p>
-          <p>
-            {seriesLabel}: {formatValue(activeDatum.y)}
-          </p>
+          {formatShortDate(activeDatum.x)} · {seriesLabel} {formatValue(activeDatum.y)}
         </div>
       )}
     </figure>

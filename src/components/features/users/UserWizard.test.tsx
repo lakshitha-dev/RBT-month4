@@ -5,7 +5,7 @@ import { UserWizard } from './UserWizard';
 
 async function fillProfile(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/full name/i), 'Keyboard Tester');
-  await user.type(screen.getByLabelText(/^email/i), 'keyboard.tester@example.com');
+  await user.type(screen.getByLabelText(/^email/i), 'keyboard.tester@adminflow.dev');
   await user.selectOptions(screen.getByLabelText(/department/i), 'Engineering');
 }
 
@@ -49,7 +49,7 @@ describe('UserWizard', () => {
     await user.click(screen.getByRole('button', { name: 'Create user' }));
     expect(onSubmit).toHaveBeenCalledWith({
       name: 'Keyboard Tester',
-      email: 'keyboard.tester@example.com',
+      email: 'keyboard.tester@adminflow.dev',
       department: 'Engineering',
       role: 'editor',
       isActive: true,

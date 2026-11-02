@@ -20,7 +20,7 @@ export function pageWindow(page: number, pageCount: number): (number | null)[] {
 }
 
 const btn =
-  'inline-flex h-9 min-w-9 items-center justify-center rounded-lg px-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50';
+  'inline-flex h-8 min-w-8 items-center justify-center rounded-control px-2 text-sm num disabled:cursor-not-allowed disabled:opacity-40';
 
 export function Pagination({ page, pageCount, pageSize, total, onPageChange, className }: PaginationProps) {
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
@@ -28,16 +28,16 @@ export function Pagination({ page, pageCount, pageSize, total, onPageChange, cla
 
   return (
     <nav aria-label="Pagination" className={clsx('flex flex-wrap items-center justify-between gap-3', className)}>
-      <p className="text-sm text-slate-600 dark:text-slate-400">
-        Showing <span className="font-medium text-slate-900 dark:text-white">{formatNumber(from)}</span>–
-        <span className="font-medium text-slate-900 dark:text-white">{formatNumber(to)}</span> of{' '}
-        <span className="font-medium text-slate-900 dark:text-white">{formatNumber(total)}</span>
+      <p className="text-sm text-muted num">
+        Showing <span className="text-ink">{formatNumber(from)}</span>–
+        <span className="text-ink">{formatNumber(to)}</span> of{' '}
+        <span className="text-ink">{formatNumber(total)}</span>
       </p>
       <ul className="flex items-center gap-1">
         <li>
           <button
             type="button"
-            className={clsx(btn, 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800')}
+            className={clsx(btn, 'text-ink hover:bg-raised')}
             onClick={() => onPageChange(page - 1)}
             disabled={page <= 1}
             aria-label="Previous page"
@@ -47,7 +47,7 @@ export function Pagination({ page, pageCount, pageSize, total, onPageChange, cla
         </li>
         {pageWindow(page, pageCount).map((p, i) =>
           p === null ? (
-            <li key={`gap-${i}`} aria-hidden="true" className="px-1 text-slate-500">
+            <li key={`gap-${i}`} aria-hidden="true" className="px-1 text-muted">
               …
             </li>
           ) : (
@@ -59,9 +59,8 @@ export function Pagination({ page, pageCount, pageSize, total, onPageChange, cla
                 aria-label={`Page ${p}`}
                 className={clsx(
                   btn,
-                  p === page
-                    ? 'bg-brand-600 text-white'
-                    : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
+                  // Current page: an ink outline (well over 3:1), not a colour fill.
+                  p === page ? 'font-semibold text-ink ring-1 ring-ink ring-inset' : 'text-muted hover:bg-raised hover:text-ink',
                 )}
               >
                 {p}
@@ -72,7 +71,7 @@ export function Pagination({ page, pageCount, pageSize, total, onPageChange, cla
         <li>
           <button
             type="button"
-            className={clsx(btn, 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800')}
+            className={clsx(btn, 'text-ink hover:bg-raised')}
             onClick={() => onPageChange(page + 1)}
             disabled={page >= pageCount}
             aria-label="Next page"

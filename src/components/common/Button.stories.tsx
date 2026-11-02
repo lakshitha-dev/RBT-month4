@@ -50,5 +50,5 @@ export const Sizes: Story = {
 
 /** Icon-only buttons must have an accessible name via `aria-label`. */
 export const IconOnly: Story = {
-  args: { 'aria-label': 'Delete user John Doe', variant: 'ghost', children: <TrashIcon /> },
+  args: { 'aria-label': 'Delete user Maya Fernando', variant: 'ghost', children: <TrashIcon /> },
 };

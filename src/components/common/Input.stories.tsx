@@ -5,7 +5,7 @@ import { SearchIcon } from './icons';
 const meta = {
   title: 'Components/Input',
   component: Input,
-  args: { label: 'Full name', placeholder: 'Jane Doe' },
+  args: { label: 'Full name', placeholder: 'Maya Fernando' },
   argTypes: {
     type: { control: 'select', options: ['text', 'email', 'password', 'search'] },
   },
@@ -18,7 +18,7 @@ type Story = StoryObj<typeof meta>;
 export const Text: Story = {};
 
 export const Email: Story = {
-  args: { label: 'Email', type: 'email', placeholder: 'jane@example.com', autoComplete: 'email' },
+  args: { label: 'Email', type: 'email', placeholder: 'maya.fernando@adminflow.dev', autoComplete: 'email' },
 };
 
 export const Password: Story = {

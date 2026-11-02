@@ -43,24 +43,24 @@ function SortButton({ column, sort, onSortChange }: { column: Column<unknown>; s
     <button
       type="button"
       onClick={() => onSortChange?.({ by: column.key, dir: active && sort.dir === 'asc' ? 'desc' : 'asc' })}
-      className="-mx-1 inline-flex items-center gap-1 rounded px-1 hover:text-slate-900 dark:hover:text-white"
+      className="group -mx-1 inline-flex items-center gap-1 rounded-control px-1 hover:text-ink"
     >
       {column.header}
-      <Icon className={clsx('size-3.5', !active && 'opacity-60')} />
+      <Icon className={clsx('size-3.5', !active && 'opacity-0 group-hover:opacity-60 group-focus-visible:opacity-60')} />
     </button>
   );
 }
 
 function TableRowInner<T>({ row, columns, className }: { row: T; columns: Column<T>[]; className?: string }) {
   return (
-    <tr className={clsx('border-t border-slate-200 dark:border-slate-800', className)}>
+    <tr className={clsx('border-t border-rule transition-colors hover:bg-raised/60', className)}>
       {columns.map((column) =>
         column.isRowHeader ? (
-          <th key={column.key} scope="row" className={clsx('px-4 py-3 text-left font-normal', column.className)}>
+          <th key={column.key} scope="row" className={clsx('h-12 px-4 text-left font-normal', column.className)}>
             {column.render(row)}
           </th>
         ) : (
-          <td key={column.key} className={clsx('px-4 py-3', column.className)}>
+          <td key={column.key} className={clsx('h-12 px-4', column.className)}>
             {column.render(row)}
           </td>
         ),
@@ -100,10 +100,10 @@ export function Table<T>({
       tabIndex={0}
     >
       <table className="w-full min-w-[640px] text-sm" aria-busy={isLoading || undefined}>
-        <caption className={clsx('px-4 py-3 text-left text-sm text-slate-600 dark:text-slate-400', hideCaption && 'sr-only')}>
+        <caption className={clsx('px-4 py-3 text-left text-sm text-muted', hideCaption && 'sr-only')}>
           {caption}
         </caption>
-        <thead className="bg-slate-50 text-left text-xs font-semibold tracking-wide text-slate-600 uppercase dark:bg-slate-800/60 dark:text-slate-300">
+        <thead className="text-left text-xs font-normal text-muted">
           <tr>
             {columns.map((column) => {
               const active = sort?.by === column.key;
@@ -112,7 +112,7 @@ export function Table<T>({
                   key={column.key}
                   scope="col"
                   aria-sort={column.sortable ? (active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none') : undefined}
-                  className={clsx('px-4 py-3 whitespace-nowrap', column.className)}
+                  className={clsx('h-10 px-4 font-normal whitespace-nowrap', column.className)}
                 >
                   {column.sortable ? (
                     <SortButton column={column as Column<unknown>} sort={sort} onSortChange={onSortChange} />
@@ -127,9 +127,9 @@ export function Table<T>({
         <tbody>
           {showSkeleton &&
             Array.from({ length: skeletonRows }, (_, i) => (
-              <tr key={i} className="border-t border-slate-200 dark:border-slate-800">
+              <tr key={i} className="border-t border-rule">
                 {columns.map((column) => (
-                  <td key={column.key} className="px-4 py-3">
+                  <td key={column.key} className="h-12 px-4">
                     <Skeleton className="h-4 w-full max-w-32" />
                   </td>
                 ))}
@@ -137,7 +137,7 @@ export function Table<T>({
             ))}
           {!showSkeleton && rows.length === 0 && (
             <tr>
-              <td colSpan={columns.length} className="px-4 py-10 text-center text-slate-600 dark:text-slate-400">
+              <td colSpan={columns.length} className="px-4 py-10 text-center text-muted">
                 {emptyMessage}
               </td>
             </tr>

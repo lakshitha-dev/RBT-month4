@@ -1,4 +1,4 @@
-import type { Paginated, User, UserInput, UsersQuery } from '@/types';
+import type { StatusCounts, StatusFilter, User, UserInput, UsersPage, UsersQuery } from '@/types';
 import { createId } from '@/utils/id';
 import { ApiError, clone, latency } from './client';
 import { getDb, logActivity, persist } from './db';
@@ -7,19 +7,29 @@ const ACTOR = 'Alex Admin';
 // One shared collator: String#localeCompare builds a new one on every call, which is slow when sorting.
 const collator = new Intl.Collator('en', { sensitivity: 'base' });
 
-function matches(user: User, query: UsersQuery): boolean {
-  if (!query.includeDeleted && user.deletedAt) return false;
-  if (query.role !== 'all' && user.role !== query.role) return false;
-  if (query.status === 'active' && !user.isActive) return false;
-  if (query.status === 'inactive' && user.isActive) return false;
-  const term = query.search.trim().toLowerCase();
-  if (term && !`${user.name} ${user.email} ${user.department}`.toLowerCase().includes(term)) return false;
+function inStatus(user: User, status: StatusFilter): boolean {
+  if (status === 'deleted') return Boolean(user.deletedAt);
+  if (user.deletedAt) return false;
+  if (status === 'active') return user.isActive;
+  if (status === 'inactive') return !user.isActive;
   return true;
 }
 
-export async function listUsers(query: UsersQuery): Promise<Paginated<User>> {
+function matchesSearchAndRole(user: User, query: UsersQuery): boolean {
+  if (query.role !== 'all' && user.role !== query.role) return false;
+  const term = query.search.trim().toLowerCase();
+  return !term || `${user.name} ${user.email} ${user.department}`.toLowerCase().includes(term);
+}
+
+export async function listUsers(query: UsersQuery): Promise<UsersPage> {
   await latency();
-  const filtered = getDb().users.filter((u) => matches(u, query));
+  const scoped = getDb().users.filter((u) => matchesSearchAndRole(u, query));
+  // Counts follow the view: every status tab is counted under the same search and role filter.
+  const counts = (['all', 'active', 'inactive', 'deleted'] as const).reduce(
+    (acc, status) => ({ ...acc, [status]: scoped.filter((u) => inStatus(u, status)).length }),
+    {} as StatusCounts,
+  );
+  const filtered = scoped.filter((u) => inStatus(u, query.status));
   const dir = query.sortDir === 'asc' ? 1 : -1;
   filtered.sort((a, b) => collator.compare(a[query.sortBy], b[query.sortBy]) * dir);
 
@@ -27,6 +37,7 @@ export async function listUsers(query: UsersQuery): Promise<Paginated<User>> {
   const page = Math.min(Math.max(1, query.page), pageCount);
   const start = (page - 1) * query.pageSize;
   return {
+    counts,
     items: clone(filtered.slice(start, start + query.pageSize)),
     total: filtered.length,
     page,

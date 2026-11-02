@@ -30,12 +30,13 @@ function ToastCard({ toast }: { toast: Toast }) {
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
-      className="animate-toast-in pointer-events-auto flex w-full gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-lg dark:border-slate-700 dark:bg-slate-900"
+      // taste-skill-ignore: toasts float over the page, so they carry a shadow
+      className="animate-rise-in pointer-events-auto flex w-full gap-3 rounded-card border border-line bg-surface p-4 shadow-[0_8px_28px_rgb(0_0_0/0.14)]"
     >
-      <Icon className={clsx('mt-0.5 size-5 shrink-0', NOTIFICATION_COLORS[toast.type])} />
+      <Icon className={clsx('mt-0.5 size-4 shrink-0', NOTIFICATION_COLORS[toast.type])} />
       <div className="min-w-0 flex-1 text-sm">
-        <p className="font-semibold text-slate-900 dark:text-white">{toast.title}</p>
-        {toast.message && <p className="mt-0.5 text-slate-600 dark:text-slate-300">{toast.message}</p>}
+        <p className="font-semibold text-ink">{toast.title}</p>
+        {toast.message && <p className="mt-0.5 text-muted">{toast.message}</p>}
         {toast.action && (
           <button
             type="button"
@@ -43,7 +44,7 @@ function ToastCard({ toast }: { toast: Toast }) {
               toast.action!.onClick();
               dismiss(toast.id);
             }}
-            className="mt-2 font-semibold text-brand-700 hover:underline dark:text-brand-300"
+            className="mt-2 font-semibold text-ink underline underline-offset-2"
           >
             {toast.action.label}
           </button>
@@ -53,7 +54,7 @@ function ToastCard({ toast }: { toast: Toast }) {
         type="button"
         onClick={() => dismiss(toast.id)}
         aria-label={`Dismiss notification: ${toast.title}`}
-        className="-m-1 h-fit rounded p-1 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+        className="-m-1 h-fit rounded-control p-1 text-muted hover:text-ink"
       >
         <CloseIcon />
       </button>

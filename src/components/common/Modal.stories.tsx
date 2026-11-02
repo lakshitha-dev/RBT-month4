@@ -62,7 +62,7 @@ export const ConfirmDelete: Story = {
             role="alertdialog"
             size="sm"
             title="Confirm delete"
-            description="Are you sure? John Doe will lose access immediately."
+            description="Are you sure? Maya Fernando will lose access immediately."
             initialFocus={cancelRef}
             footer={
               <>
@@ -101,8 +101,8 @@ export const WithForm: Story = {
       footer={<Button>Save</Button>}
     >
       <div className="space-y-4">
-        <Input label="Full name" defaultValue="John Doe" />
-        <Input label="Email" type="email" defaultValue="john@example.com" />
+        <Input label="Full name" defaultValue="Maya Fernando" />
+        <Input label="Email" type="email" defaultValue="maya.fernando@adminflow.dev" />
       </div>
     </ModalDemo>
   ),

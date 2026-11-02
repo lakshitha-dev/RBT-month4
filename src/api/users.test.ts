@@ -25,13 +25,15 @@ describe('mock users API', () => {
   });
 
   it('soft deletes and restores', async () => {
-    const search = 'temp@example.com';
+    const search = 'temp.user@adminflow.dev';
     const user = await createUser({ name: 'Temp User', email: search, role: 'user', isActive: true });
     await deleteUser(user.id);
     expect((await listUsers({ ...DEFAULT_USERS_QUERY, search })).total).toBe(0);
 
-    const withDeleted = await listUsers({ ...DEFAULT_USERS_QUERY, search, includeDeleted: true });
+    const withDeleted = await listUsers({ ...DEFAULT_USERS_QUERY, search, status: 'deleted' });
     expect(withDeleted.items[0]?.deletedAt).not.toBeNull();
+
+    expect(withDeleted.counts).toMatchObject({ all: 0, deleted: 1 });
 
     await restoreUser(user.id);
     expect((await listUsers({ ...DEFAULT_USERS_QUERY, search })).total).toBe(1);

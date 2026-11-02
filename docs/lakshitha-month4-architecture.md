@@ -20,7 +20,8 @@ AdminFlow is a single-page admin dashboard covering five features:
 | Server state | **TanStack Query 5** | Caching, background refetch, optimistic updates and retries |
 | Routing | **React Router 6.30** (data router) | Nested layout routes and `lazy()` pages |
 | Forms | **React Hook Form + Zod 4** | Uncontrolled inputs keep re-renders low; the schema is the single source of validation truth |
-| Styling | **Tailwind CSS 4** | No runtime CSS-in-JS cost; class-based dark mode |
+| Styling | **Tailwind CSS 4** + semantic CSS tokens | No runtime CSS-in-JS cost; one token swap gives dark mode (see §12) |
+| Typeface | **IBM Plex Sans**, self-hosted (latin, 400/500/600) | Dealt by the design direction; served from the app itself (no third-party font request) |
 | Virtualisation | **@tanstack/react-virtual** | Long activity log |
 | Component docs | **Storybook 10** + addon-a11y | 8+ documented components with automated a11y checks |
 | Tests | **Vitest + Testing Library** | Stores, hooks, schema, mock API and modal focus behaviour |
@@ -167,7 +168,8 @@ The text box stays responsive. A request is issued only after 300 ms of inactivi
 | Off-screen rendering skipped | `content-visibility: auto` (`defer-offscreen` utility) on below-the-fold sections, so phones skip their layout and paint until scrolled near. Content stays in the accessibility tree. |
 | State colocation | Each dashboard widget owns its query (`MetricsSection`, `TrendCard`, `RecentActivity`), so one widget's data arriving re-renders only that widget |
 | Cheap sorting | One shared `Intl.Collator` instead of `String#localeCompare`, which builds a collator per comparison |
-| Cheap paint | System font stack (no web-font request); no `backdrop-filter` on the sticky header |
+| Fonts without a third-party request | IBM Plex Sans is self-hosted from the bundle (latin subset only, 3 weights at about 23 KB each, `font-display: swap`); no `backdrop-filter` anywhere |
+| No layout shift while loading | Every loading placeholder is the real size of what it replaces (header finding lines, tab count slots, list rows), so CLS is about 0 |
 | Server-state caching | `staleTime: 30s`; no refetch on window focus |
 
 ### How the performance work was driven
@@ -219,14 +221,14 @@ Where to find the evidence for each rubric criterion (paths are relative to the 
 
 ### Accessibility (20)
 
-Full audit: `lakshitha-month4-accessibility.md`. Results: axe-core found 0 violations in 26 scenario/theme runs, a 320 px reflow check passed, 10/10 scripted keyboard journeys passed, and Lighthouse accessibility scored 100 on every page. A **real NVDA 2026.2 screen-reader test** (30 steps, real keystrokes, captured speech) passes 30/30 after fixing the 3 issues it uncovered.
+Full audit: `lakshitha-month4-accessibility.md`. Results: axe-core found 0 violations in 26 scenario/theme runs, a 320 px reflow check passed, 10/10 scripted keyboard journeys passed, and Lighthouse accessibility scored 100 on every page. **Real NVDA 2026.2 screen-reader tests** (real keystrokes, captured speech) on both the original and the redesigned build pass after fixing the issues they uncovered (F1–F9 in the audit).
 
 ### Performance (20)
 
 | Criterion | Evidence |
 |---|---|
-| Lighthouse 90+ | **Performance 99–100 on every page** (mobile: Login 100, Dashboard 99, Users 99; desktop: 100 on all three). Accessibility, Best Practices and SEO are 100 on every run. Mobile: FCP 0.8 s, LCP ≤ 1.6 s, TBT 80–120 ms, CLS ≤ 0.009. Median of 3 runs per page and profile; see `lakshitha-month4-lighthouse.pdf` and `docs/lighthouse/summary.md` |
-| Bundle / code splitting | Every route `lazy()` + `Suspense`; RHF/Zod and the virtualiser load only on the routes that use them; no chart or icon libraries (hand-written SVG); system fonts |
+| Lighthouse 90+ | **Performance 100 on every page and profile** (median of 3 runs: Login, Overview and Users, each on mobile and desktop). Accessibility, Best Practices and SEO are 100 on every run. See `lakshitha-month4-lighthouse.pdf` and `docs/lighthouse/summary.md` for FCP, LCP, TBT and CLS per page |
+| Bundle / code splitting | Every route `lazy()` + `Suspense`; RHF/Zod and the virtualiser load only on the routes that use them; no chart or icon libraries (hand-written SVG); self-hosted latin-only font subsets |
 | Load time and rendering | `memo`/`useMemo` where profiling showed benefit, virtualised 500-row activity log, `content-visibility` for off-screen sections, no raster images (SVG only) |
 
 ### Component library (10)
@@ -236,3 +238,44 @@ Full audit: `lakshitha-month4-accessibility.md`. Results: axe-core found 0 viola
 ### Code quality (5)
 
 TypeScript `strict` with no `any` in app code; ESLint (TS, React Hooks, jsx-a11y) clean; 17 unit tests; the folder structure follows the brief (`components/common|layout|features`, `hooks`, `stores`, `pages`, `utils`, `types`) plus `api/`, `schemas/` and `lib/`.
+
+## 12. Visual design: the "framed-sheet" direction
+
+The UI was redesigned with the [taste-skill](https://github.com/leonxlnx/taste-skill) app-screen workflow. That workflow is distilled from 23 real product screens and is built to replace the defaults of generated dashboards with decisions. Its script dealt the **`framed-sheet`** style for an `smb-admin` product (seed 983377661). Its inspector (`inspect.mjs --app`) and source lint gated the result.
+
+**The move.** The sidebar and a 48px top bar share one tinted frame with no rule between them. Pages sit on a white sheet inset 8px, with a 16px radius, a 1px edge and no shadow. Colour is kept for data and the one primary action. On phones the frame folds away and the sheet becomes the screen.
+
+**Tokens** live once in `src/index.css` as CSS variables (ground, surface, raised, active, border, rule, control, ink, muted, primary, accent, positive, negative, plus the pale status-pill pairs). They are mapped into Tailwind with `@theme inline`, so components say what a colour *means* (`bg-surface`, `text-muted`, `border-line`). Dark mode redefines the same variables with true neutrals (no navy, no slate). Every text and UI pair was computed for contrast before use.
+
+**This product's face.**
+
+- The teal `#1b6c80` is AdminFlow's hue. It appears on the mark, the main data series and the 2px tab underline, and nowhere else in the chrome. It replaces the previous indigo, which the direction bans.
+- A drawn mark (three rows flowing into one another, the shape of the roster) replaces a letter in a box.
+- **Signature element: the workspace roster.** Every person is one square, grouped by department, filled when active and hollow when inactive. It answers "who's in the workspace" at a glance and makes the screen's finding visible.
+
+**The screen's question and finding.** The Overview answers "Who's in the workspace, and does anything need my attention?". The title row states the finding ("27 of 124 accounts are inactive and can't sign in"), links **Review inactive**, and offers the most frequent job (**Add user**) as the only filled button. The finding and the roster read the same rows, so the two copies of the number always agree.
+
+**What changed from the generated-dashboard defaults.**
+
+| Before | After |
+|---|---|
+| "Good to see you, Alex" greeting | A noun title, "Overview", plus the finding |
+| Four KPI cards, each with an icon in a tinted square and a green "+%" | One container split by hairlines; label over value at 28px regular; colour means good or bad, and every delta names its baseline ("vs prior 30 days") |
+| Brand-coloured active nav item, tabs and buttons | Grey nav pill with an ink label; ink underline tabs; a near-black primary; the accent only on data |
+| Gradient area chart, dashed grid | A 2px teal line over a flat 10% tint; 3–6 solid faint gridlines on round steps; no y-axis line |
+| Chart range inside the chart card | One page-level range (7 / 30 / 90 days) that drives the KPIs and the chart together, with a freshness stamp and Refresh |
+| Status select plus a "Show deleted" checkbox | Underline status tabs (All / Active / Inactive / Deleted) with counts that follow the search and role filter |
+| Uppercase table headers, a card around the table | 12px grey sentence-case headers; the table sits on the sheet; name over email in one cell; ISO dates right-aligned |
+| Cards with soft shadows | A 1px edge or a tone step; shadows only on what floats (dialogs, popovers, toasts) |
+| Top bar with only icons | A centred **Search people** field (Ctrl+K / ⌘K focuses it) that opens the filtered Users list |
+
+**Deliberate deviations, for accessibility.** Each one is measured, not assumed.
+
+- Field and control borders use `#80858a` (3.6:1) instead of the sheet's `#cdced1` (1.6:1), because WCAG 1.4.11 requires 3:1 for the boundary of a field.
+- The active nav item adds an ink, semibold label to the grey pill, so the state never rests on a 1.1:1 tint alone.
+
+**Inspector results** (before → after; Overview, Users and Settings at 1440, 768 and 390px):
+
+- **Before:** 2 FAILs per screen. All three had the dealt typeface not loaded; Overview and Settings also had the indigo palette; Users also had placeholder `example.com` data. Warnings were icons in tinted squares, 0% tabular figures, a ragged card row and a 179px empty band.
+- **After:** 0 findings on Overview, Users, Settings and Activity. Notifications keeps one WARN: the demo inbox really holds three messages, and padding it would mean inventing content.
+- **Source lint:** 0 FAIL. Three WARNs remain, for shadows on the dialog, the popover and the toasts, which are the floating surfaces the direction allows.

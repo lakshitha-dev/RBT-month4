@@ -1,12 +1,13 @@
 import clsx from 'clsx';
 import { initials } from '@/utils/format';
 
+// Identity tints, not data: pale, out of every legend, hues at least 60 degrees apart.
 const palette = [
-  'bg-brand-100 text-brand-800 dark:bg-brand-800 dark:text-brand-50',
-  'bg-emerald-100 text-emerald-800 dark:bg-emerald-800 dark:text-emerald-50',
-  'bg-amber-100 text-amber-900 dark:bg-amber-800 dark:text-amber-50',
-  'bg-rose-100 text-rose-800 dark:bg-rose-800 dark:text-rose-50',
-  'bg-sky-100 text-sky-800 dark:bg-sky-800 dark:text-sky-50',
+  'bg-[#dcefe9] text-[#14453a] dark:bg-[#16302a] dark:text-[#9fd8c6]', // teal-green
+  'bg-[#e3ecf8] text-[#1d3c66] dark:bg-[#18263a] dark:text-[#a9c4ea]', // blue
+  'bg-[#f6ead6] text-[#5c3d0b] dark:bg-[#33281a] dark:text-[#e8c487]', // amber
+  'bg-[#f6e1e4] text-[#6b2430] dark:bg-[#36202a] dark:text-[#eeb0bc]', // rose
+  'bg-[#e6ecd9] text-[#384a17] dark:bg-[#262d18] dark:text-[#c3d69a]', // olive
 ];
 
 /** Decorative initials avatar; the person's name should always be shown next to it. */
@@ -16,8 +17,8 @@ export function Avatar({ name, size = 'md', className }: { name: string; size?: 
     <span
       aria-hidden="true"
       className={clsx(
-        'inline-flex shrink-0 items-center justify-center rounded-full font-semibold',
-        size === 'sm' ? 'size-7 text-[11px]' : 'size-9 text-xs',
+        'inline-flex shrink-0 items-center justify-center rounded-full font-medium',
+        size === 'sm' ? 'size-7 text-[11px]' : 'size-8 text-xs',
         palette[hash % palette.length],
         className,
       )}

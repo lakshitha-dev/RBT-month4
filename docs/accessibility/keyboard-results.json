@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-02T08:14:26.079Z",
+  "generated": "2026-11-02T11:27:47.327Z",
   "results": [
     {
       "check": "First Tab reaches the skip link; activating it moves focus to <main>",
